@@ -166,8 +166,10 @@ class MyClient(discord.Client):
                     'TETITBbot Help\n'+
                     'Revision: 23032021-0140P'
                     'Usage:\n'+
-                    '1. !getcg [URL]   to get chegg answer\n'+
-                    '2. !getcg help   to show this help')
+                    '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg chegg.com/homewo...*\n'+
+                    '2. **!getcg help**     Show this help\n'+
+                    '*Use this bot with your own risk*'
+                    )
                 await message.reply(msg_reply, mention_author=True)
                 print('\tINFO: Showing help to user')
                 
@@ -328,7 +330,7 @@ class MyClient(discord.Client):
 
             else:
 
-                msg_reply = 'Not a chegg link'
+                msg_reply = 'Unsupported command. See ***!getcg help***'
                 await message.reply(msg_reply, mention_author=True)
                 print('\tINFO: '+msg_reply)
 
