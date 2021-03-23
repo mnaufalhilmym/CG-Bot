@@ -156,16 +156,28 @@ class MyClient(discord.Client):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('!getcg'):
+        elif message.content.startswith('!getcg'):
 
             msg = message.content
-            msg = msg[msg.find('chegg.com'):]
 
-            msg_reply = 'Opening URL... \nhttps://www.'+msg
-            await message.reply(msg_reply, mention_author=True)
-            print('\tINFO: '+msg_reply)
+            if '!getcg help' in msg:
 
-            if 'chegg.com' in msg:
+                msg_reply = (
+                    'TETITBbot Help\n'+
+                    'Revision: 23032021-0140P'
+                    'Usage:\n'+
+                    '1. !getcg [URL]   to get chegg answer\n'+
+                    '2. !getcg help   to show this help')
+                await message.reply(msg_reply, mention_author=True)
+                print('\tINFO: Showing help to user')
+                
+            elif 'chegg.com' in msg:
+
+                msg = msg[msg.find('chegg.com'):]
+
+                msg_reply = 'Opening URL... \nhttps://www.'+msg
+                await message.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
 
                 url = 'https://www.' + msg
                 connect = False
