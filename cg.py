@@ -95,7 +95,8 @@ else:
 
         try:
 
-            driver.get(url)
+            if url != driver.current_url:
+                driver.get(url)
             print('\tINFO: Accessing '+url)
             time.sleep(random.uniform(2,3))
 
