@@ -128,14 +128,14 @@ else:
                 print('\tINFO: Login Failed')
                 print('\t\tReason:')
                 if 'denied' in driver.title:
-                    print('\t\tCaptcha detected')
-                    input('Enter to continue')
+                    print('\t\tCaptcha detected. Need to be resolved manually.')
+                    input('\t\tEnter to continue')
                 else:
                     print('\t\tUnknown reason')
-                    input('Enter to continue')
+                    input('\t\tEnter to continue')
 
         except Exception as e:
-            print('\tINFO: Get Exception while Loging in '+url)
+            print('\tINFO: Get Exception while loging in '+url)
             continue
 
 height = 890
@@ -163,12 +163,12 @@ class MyClient(discord.Client):
             if '!getcg help' in msg:
 
                 msg_reply = (
-                    'TETITBbot Help\n'+
-                    'Revision: 23032021-0140P'
+                    '**TETITBbot Help**\n'+
+                    'Revision: 23032021\n\n'
                     'Usage:\n'+
-                    '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg chegg.com/homewo...*\n'+
-                    '2. **!getcg help**     Show this help\n'+
-                    '*Use this bot with your own risk*'
+                    '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n'+
+                    '2. **!getcg help**     Show this help\n\n'+
+                    '*Use this bot at your own risk*'
                     )
                 await message.reply(msg_reply, mention_author=True)
                 print('\tINFO: Showing help to user')
@@ -188,149 +188,166 @@ class MyClient(discord.Client):
                     try:
                         if url != driver.current_url:
                             driver.get(url)
+
                         if is_visible_xpath(5,'/html/body/div[1]/div[4]/oc-component/div[1]/div/a'):
                             connect = True
+                            bot_state = True
+
                         else:
-                            print('\tINFO: Failed Accessing '+url)
+                            print('\tINFO: Failed accessing '+url)
                             print('\t\tReason:')
+
                             if 'denied' in driver.title:
-                                print('\t\tCaptcha detected')
-                                input('Enter to continue')
+                                msg_reply = 'Captcha detected. Please wait while resolving it...'
+                                await message.reply(msg_reply, mention_author=True)
+                                print('\t\tCaptcha detected. Need to be resolved manually.')
+                                input('\t\tEnter to continue')
+
+                            elif driver.title == 'Page Not Found':
+                                msg_reply = 'Page not found. Check your URL!'
+                                await message.reply(msg_reply, mention_author=True)
+                                print('\t\tPage not found at '+url)
+                                bot_state = False
+                                break
+
                             else:
                                 print('\t\tUnknown reason')
-                                input('Enter to continue')
+                                input('\t\tEnter to continue')
 
                     except Exception as e:
-                        print('\tINFO: Get Exception while Accessing '+url)
-                        continue
-
-                time.sleep(random.uniform(1,2))
-
-                if 'denied' in driver.title:
-
-                    msg_reply = 'Captcha detected'
-                    await message.reply(msg_reply, mention_author=True)
-                    print('\tINFO: '+msg_reply)
-                    input('Enter to continue')
-
-                    time.sleep(random.uniform(3,6))
-
-                    # Atempting to beat captcha but still won't work
-
-                    # if is_visible_xpath(5,"//iframe[@role='presentation']"):
-                    #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
-                    #     print("switched to //iframe[@role='presentation']")
-
-                    # if is_visible_xpath(5,'//*[@id="recaptcha-anchor"]'):
-                    #     driver.find_element_by_xpath('//*[@id="recaptcha-anchor"]').click()
-                    #     print("//*[@id='recaptcha-anchor'] clicked")
-                    #     time.sleep(random.uniform(3,6))
-
-                    # driver.switch_to.default_content()
-                    # print("switch_to.default_content()")
-
-                    # if is_visible_xpath(5,"//iframe[@title='recaptcha challenge']"):
-                    #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@title='recaptcha challenge']"))
-                    #     print("switched to//iframe[@title='recaptcha challenge']")
-                        
-                    #     # driver.switch_to.default_content()
-                    #     # print("switch_to.default_content()")
-
-                    #     if is_visible_xpath(5,'//button[@id="recaptcha-audio-button"]'):
-                    #         driver.find_element_by_xpath('//button[@id="recaptcha-audio-button"]').click()
-                    #         print('//button[@id="recaptcha-audio-button"] clicked')
-                    #         time.sleep(random.uniform(3,6))
-
-                    #         if is_visible_xpath(5,'//a[@title="Alternatively, download audio as MP3"]'):
-                    #             driver.find_element_by_xpath('//a[@title="Alternatively, download audio as MP3"]').click()
-                    #             print('//a[@title="Alternatively, download audio as MP3"]')
-                    # time.sleep(random.uniform(59,62))
-
-
-                    # is_visible_class(3,'rc-audiochallenge-tdownload-link')
-                    # link = driver.find_element_by_class_name('rc-audiochallenge-tdownload-link')
-                    # href = link.get_attribute('href')
-                    # link.send_keys(Keys.COMMAND + 't')
-                    # driver.get(href)
-                    # captcha_voice()
-                    # link.send_keys(Keys.COMMAND + 'w')
-                    # is_visible_class(3,'audio-response')
-                    # driver.find_element_by_id('audio-response').send_keys(captcha_text)
-                    # driver.find_element_by_id('recaptcha-verify-button').click()
-
-
-                driver.switch_to.default_content()
-
-                if is_visible_class(3,'question-text'):
-                    msg_reply = 'Page loaded successfully. Processing PDF...'
-                    await message.reply(msg_reply, mention_author=True)
-                    print('\tINFO: '+msg_reply)
-
-                total_height = driver.execute_script("return document.body.parentNode.scrollHeight")
-                top_height = 0
-                n = 1
-
-                while top_height < total_height:
-
-                    filepath = 'data/cache/screenshot'+str(n)+'.png'
-                    driver.save_screenshot(filepath)
-
-                    if (top_height + height) < total_height:
-                        top_height = top_height + height - 240
-                    else:
+                        msg_reply = 'Get Exception while accessing URL'
+                        await message.reply(msg_reply, mention_author=True)
+                        print('\tINFO: Get Exception while accessing '+url)
                         break
 
-                    driver.execute_script("window.scrollTo(0, {})".format(top_height))
-                    n = n + 1
+                if bot_state:
+                    time.sleep(random.uniform(1,2))
 
-                driver.execute_script("window.scrollTo(0, 0)")
+                    if 'denied' in driver.title:
 
-                images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
+                        msg_reply = 'Captcha detected. Please wait while resolving it...'
+                        await message.reply(msg_reply, mention_author=True)
+                        print('\t\tCaptcha detected. Need to be resolved manually.')
+                        input('\tEnter to continue')
 
-                x = 1
-                for im in images:
-                    im = im.crop((0,75,width,height))
-                    im.save('data/cache/ans'+str(x)+'.png', quality=50)
-                    x = x + 1
+                        time.sleep(random.uniform(3,6))
 
-                images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n)]
-                widths, heights = zip(*(i.size for i in images))
-                max_width = max(widths)
-                total_height = sum(heights)
+                        # Atempting to beat captcha but still won't work
 
-                new_im = Image.new('RGB', (max_width, total_height))
+                        # if is_visible_xpath(5,"//iframe[@role='presentation']"):
+                        #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
+                        #     print("switched to //iframe[@role='presentation']")
 
-                y_offset = 0
-                n = 0
-                for im in images:
-                    new_im.paste(im, (0,y_offset))
-                    y_offset += im.size[1] - 2
+                        # if is_visible_xpath(5,'//*[@id="recaptcha-anchor"]'):
+                        #     driver.find_element_by_xpath('//*[@id="recaptcha-anchor"]').click()
+                        #     print("//*[@id='recaptcha-anchor'] clicked")
+                        #     time.sleep(random.uniform(3,6))
 
-                new_im.save('data/cache/ans.png', quality=50)
+                        # driver.switch_to.default_content()
+                        # print("switch_to.default_content()")
 
-                image = Image.open('data/cache/ans.png')
-                pdf = open('data/cache/ans.pdf', 'wb')
+                        # if is_visible_xpath(5,"//iframe[@title='recaptcha challenge']"):
+                        #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@title='recaptcha challenge']"))
+                        #     print("switched to//iframe[@title='recaptcha challenge']")
+                            
+                        #     # driver.switch_to.default_content()
+                        #     # print("switch_to.default_content()")
 
-                pdf.write(img2pdf.convert(image.filename))
-                image.close()
-                pdf.close()
+                        #     if is_visible_xpath(5,'//button[@id="recaptcha-audio-button"]'):
+                        #         driver.find_element_by_xpath('//button[@id="recaptcha-audio-button"]').click()
+                        #         print('//button[@id="recaptcha-audio-button"] clicked')
+                        #         time.sleep(random.uniform(3,6))
 
-                msg_reply = 'Sending PDF...'
-                await message.reply(msg_reply, mention_author=True)
-                print('\tINFO: '+msg_reply)
+                        #         if is_visible_xpath(5,'//a[@title="Alternatively, download audio as MP3"]'):
+                        #             driver.find_element_by_xpath('//a[@title="Alternatively, download audio as MP3"]').click()
+                        #             print('//a[@title="Alternatively, download audio as MP3"]')
+                        # time.sleep(random.uniform(59,62))
 
-                await message.channel.send(file=discord.File('data/cache/ans.pdf'))
 
-                msg_reply = 'Done! :)'
-                await message.reply(msg_reply, mention_author=True)
-                print('\tINFO: '+msg_reply)
+                        # is_visible_class(3,'rc-audiochallenge-tdownload-link')
+                        # link = driver.find_element_by_class_name('rc-audiochallenge-tdownload-link')
+                        # href = link.get_attribute('href')
+                        # link.send_keys(Keys.COMMAND + 't')
+                        # driver.get(href)
+                        # captcha_voice()
+                        # link.send_keys(Keys.COMMAND + 'w')
+                        # is_visible_class(3,'audio-response')
+                        # driver.find_element_by_id('audio-response').send_keys(captcha_text)
+                        # driver.find_element_by_id('recaptcha-verify-button').click()
 
-                pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
-                print('\tINFO: Cookie saved')
+
+                    driver.switch_to.default_content()
+
+                    if is_visible_class(3,'question-text'):
+                        msg_reply = 'Page loaded successfully. Processing PDF...'
+                        await message.reply(msg_reply, mention_author=True)
+                        print('\tINFO: '+msg_reply)
+
+                    total_height = driver.execute_script("return document.body.parentNode.scrollHeight")
+                    top_height = 0
+                    n = 1
+
+                    while top_height < total_height:
+
+                        filepath = 'data/cache/screenshot'+str(n)+'.png'
+                        driver.save_screenshot(filepath)
+
+                        if (top_height + height) < total_height:
+                            top_height = top_height + height - 240
+                        else:
+                            break
+
+                        driver.execute_script("window.scrollTo(0, {})".format(top_height))
+                        n = n + 1
+
+                    driver.execute_script("window.scrollTo(0, 0)")
+
+                    images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
+
+                    x = 1
+                    for im in images:
+                        im = im.crop((0,75,width,height))
+                        im.save('data/cache/ans'+str(x)+'.png', quality=50)
+                        x = x + 1
+
+                    images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n)]
+                    widths, heights = zip(*(i.size for i in images))
+                    max_width = max(widths)
+                    total_height = sum(heights)
+
+                    new_im = Image.new('RGB', (max_width, total_height))
+
+                    y_offset = 0
+                    n = 0
+                    for im in images:
+                        new_im.paste(im, (0,y_offset))
+                        y_offset += im.size[1] - 2
+
+                    new_im.save('data/cache/ans.png', quality=50)
+
+                    image = Image.open('data/cache/ans.png')
+                    pdf = open('data/cache/ans.pdf', 'wb')
+
+                    pdf.write(img2pdf.convert(image.filename))
+                    image.close()
+                    pdf.close()
+
+                    msg_reply = 'Sending PDF...'
+                    await message.reply(msg_reply, mention_author=True)
+                    print('\tINFO: '+msg_reply)
+
+                    await message.channel.send(file=discord.File('data/cache/ans.pdf'))
+
+                    msg_reply = 'Done! :)'
+                    await message.reply(msg_reply, mention_author=True)
+                    print('\tINFO: '+msg_reply)
+
+                    pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
+                    print('\tINFO: Cookie saved')
 
             else:
 
-                msg_reply = 'Unsupported command. See ***!getcg help***'
+                msg_reply = 'Unsupported command. See *!getcg help*'
                 await message.reply(msg_reply, mention_author=True)
                 print('\tINFO: '+msg_reply)
 
