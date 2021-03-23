@@ -144,18 +144,11 @@ else:
             print('\tINFO: Get Exception while loging in '+url)
             continue
 
-filepath = 'data/cache/initial.png'
-driver.save_screenshot(filepath)
-im = Image.open(filepath)
-vw_width, vw_height = im.size
-
-height = vw_height
-width = vw_width - 20
-
 
 # Process
 class MyClient(discord.Client):
     async def on_ready(self):
+        await client.change_presence(activity=discord.Game(name="!getcg help"))
         print('\tLogged in as:')
         print('\tUsername: '+str(self.user.name))
         print('\tUser ID: '+str(self.user.id))
@@ -232,6 +225,15 @@ class MyClient(discord.Client):
                         break
 
                 if bot_state:
+
+                    filepath = 'data/cache/initial.png'
+                    driver.save_screenshot(filepath)
+                    im = Image.open(filepath)
+                    vw_width, vw_height = im.size
+
+                    height = vw_height
+                    width = vw_width - 20
+
                     time.sleep(random.uniform(1,2))
 
                     if 'denied' in driver.title:
@@ -246,7 +248,7 @@ class MyClient(discord.Client):
                         # Atempting to beat captcha but still won't work
 
                         # if is_visible_xpath(5,"//iframe[@role='presentation']"):
-                        #     driver.titdriver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
+                        #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
                         #     print("switched to //iframe[@role='presentation']")
 
                         # if is_visible_xpath(5,'//*[@id="recaptcha-anchor"]'):
