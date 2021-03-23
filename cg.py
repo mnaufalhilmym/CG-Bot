@@ -63,20 +63,25 @@ prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings)
 options.add_experimental_option('prefs', prefs)
 options.add_argument('--kiosk-printing')
 driver = webdriver.Chrome(options=options)
+driver.set_page_load_timeout(30)
 
 if os.path.isfile("data/cgCookies.pkl"):
 
-    url = 'http://ifconfig.me'
+    url = 'https://www.chegg.com'
     connect = False
     while not connect:
         try:
             driver.get(url)
             print('\tINFO: Accessing '+url)
+            time.sleep(random.uniform(2,4))
 
-            if is_visible_xpath(5,'//*[@id="ip_address"]'):
+            if 'Chegg' in driver.title:
+                url = 'https://www.chegg.com/study'
+                driver.get(url)
 
-                connect = True
-                print('\tINFO: Successfully Accessed '+url)
+                if 'Homework' in driver.title:
+                    connect = True
+                    print('\tINFO: Successfully Accessed '+url)
 
         except Exception as e:
             print('\tINFO: Get Exception while Accessing '+url)
@@ -241,7 +246,7 @@ class MyClient(discord.Client):
                         # Atempting to beat captcha but still won't work
 
                         # if is_visible_xpath(5,"//iframe[@role='presentation']"):
-                        #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
+                        #     driver.titdriver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
                         #     print("switched to //iframe[@role='presentation']")
 
                         # if is_visible_xpath(5,'//*[@id="recaptcha-anchor"]'):
@@ -299,7 +304,7 @@ class MyClient(discord.Client):
                         driver.save_screenshot(filepath)
 
                         if (top_height + height) < total_height:
-                            top_height = top_height + height - 240
+                            top_height = top_height + height - 60
                         else:
                             break
 
@@ -312,7 +317,7 @@ class MyClient(discord.Client):
 
                     x = 1
                     for im in images:
-                        im = im.crop((0,75,width,height))
+                        im = im.crop((0,60,width,height))
                         im.save('data/cache/ans'+str(x)+'.png', quality=50)
                         x = x + 1
 
@@ -350,6 +355,8 @@ class MyClient(discord.Client):
 
                     pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
                     print('\tINFO: Cookie saved')
+
+                    driver.get('https://www.chegg.com/study')
 
             else:
 
