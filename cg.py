@@ -1,15 +1,13 @@
-import discord, pickle, random, time, os, dotenv, unicodedata, glob, sys, img2pdf
+import discord, pickle, random, time, os, dotenv, img2pdf, json
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
-import speech_recognition as sr
-from os import path
-from pydub import AudioSegment
-import json
 from PIL import Image
+import speech_recognition as sr
+from pydub import AudioSegment
 
 
 # Variable
@@ -87,7 +85,7 @@ if os.path.isfile("data/cgCookies.pkl"):
     cookies = pickle.load(open("data/cgCookies.pkl", "rb"))
     for cookie in cookies:
         driver.add_cookie(cookie)
-    print('\tINFO: cookie loaded')
+    print('\tINFO: Cookie loaded')
 
 else:
 
@@ -174,7 +172,8 @@ class MyClient(discord.Client):
                 while not connect:
 
                     try:
-                        driver.get(url)
+                        if url != driver.current_url:
+                            driver.get(url)
                         if is_visible_xpath(5,'/html/body/div[1]/div[4]/oc-component/div[1]/div/a'):
                             connect = True
                         else:
