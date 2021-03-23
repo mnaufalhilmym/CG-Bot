@@ -139,8 +139,13 @@ else:
             print('\tINFO: Get Exception while loging in '+url)
             continue
 
-height = 890
-width = 1900
+filepath = 'data/cache/initial.png'
+driver.save_screenshot(filepath)
+im = Image.open(filepath)
+vw_width, vw_height = im.size
+
+height = vw_height
+width = vw_width - 20
 
 
 # Process
@@ -322,7 +327,7 @@ class MyClient(discord.Client):
                     n = 0
                     for im in images:
                         new_im.paste(im, (0,y_offset))
-                        y_offset += im.size[1] - 2
+                        y_offset += im.size[1]
 
                     new_im.save('data/cache/ans.png', quality=50)
 
