@@ -67,78 +67,143 @@ options.add_argument('--kiosk-printing')
 driver = webdriver.Chrome(options=options)
 
 if os.path.isfile("data/cgCookies.pkl"):
-    driver.get("http://google.com")
-    time.sleep(random.uniform(1,2))
+
+    url = 'http://ifconfig.me'
+    connect = False
+    while not connect:
+        try:
+            driver.get(url)
+            print('\tINFO: Accessing '+url)
+
+            if is_visible_xpath(5,'//*[@id="ip_address"]'):
+
+                connect = True
+                print('\tINFO: Successfully Accessed '+url)
+
+        except Exception as e:
+            print('\tINFO: Get Exception while Accessing '+url)
+            continue
+            
     cookies = pickle.load(open("data/cgCookies.pkl", "rb"))
     for cookie in cookies:
         driver.add_cookie(cookie)
-    print('cookie loaded')
+    print('\tINFO: cookie loaded')
+
 else:
-    driver.get("https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F")
-    time.sleep(random.uniform(2,3))
-    driver.find_element_by_xpath('//*[@id="emailForSignIn"]').send_keys(siteEmail)
-    time.sleep(random.uniform(2,3))
-    driver.find_element_by_xpath('//*[@id="passwordForSignIn"]').send_keys(sitePassword)
-    time.sleep(random.uniform(2,3))
-    driver.find_element_by_xpath('//*[@id="eggshell-8"]/form/div/div/div/footer/button').click()
-    if is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
-        print('login success')
-    time.sleep(random.uniform(1,2))
-    pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
-    print('cookie saved')
+
+    url = 'https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F'
+    connect = False
+    while not connect:
+
+        try:
+
+            driver.get(url)
+            print('\tINFO: Accessing '+url)
+            time.sleep(random.uniform(2,3))
+
+            xpath = '//*[@id="emailForSignIn"]'
+            if is_visible_xpath(5,xpath):
+                driver.find_element_by_xpath(xpath).send_keys(siteEmail)
+                print('\tINFO: Email '+siteEmail+' Filled')
+                time.sleep(random.uniform(2,3))
+            
+            xpath = '//*[@id="passwordForSignIn"]'
+            if is_visible_xpath(5,xpath):
+                driver.find_element_by_xpath(xpath).send_keys(sitePassword)
+                print('\tINFO: Password '+sitePassword+' Filled')
+                time.sleep(random.uniform(2,3))
+
+            xpath = '//button[@class="login-button button flat"]'
+            if is_visible_xpath(5,xpath):
+                driver.find_element_by_xpath(xpath).click()
+                print('\tINFO: Login Button Clicked')
+
+            if is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
+                print('\tINFO: Login Successful')
+                time.sleep(random.uniform(1,2))
+                pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
+                print('\tINFO: Cookie Saved')
+
+                connect = True
+            
+            else:
+                print('\tINFO: Login Failed')
+                print('\t\tReason:')
+                if 'denied' in driver.title:
+                    print('\t\tCaptcha detected')
+                    input('Enter to continue')
+                else:
+                    print('\t\tUnknown reason')
+                    input('Enter to continue')
+
+        except Exception as e:
+            print('\tINFO: Get Exception while Loging in '+url)
+            continue
 
 height = 890
 width = 1900
 
 
-
-def captcha_voice():
-    # convert mp3 file to wav                                                       
-    sound = AudioSegment.from_mp3("data/audio.mp3")
-    sound.export("data/audio.wav", format="wav")
-
-    # transcribe audio file                                                         
-    AUDIO_FILE = "data/audio.wav"
-
-    # use the audio file as the audio source                                        
-    r = sr.Recognizer()
-    with sr.AudioFile(AUDIO_FILE) as source:
-        audio = r.record(source)  # read the entire audio file                  
-        captcha_text = r.recognize_google(audio)
-        print("Transcription: " + captcha_text)
-    
-    os.remove('data/audio.mp3')
-    os.remove('data/audio.wav')
-
-
 # Process
 class MyClient(discord.Client):
     async def on_ready(self):
-        print('Logged in as:')
+        print('\tLogged in as:')
         print('\tUsername: '+str(self.user.name))
         print('\tUser ID: '+str(self.user.id))
-        print('\tStatus: Ready')
-        print('------')
+        print('\t------READY------')
 
     async def on_message(self, message):
+
         # Prevent bot to reply to itself
         if message.author.id == self.user.id:
             return
-        # if message.author.bot:
-        #     return
 
         if message.content.startswith('!getcg'):
+
             msg = message.content
             msg = msg[msg.find('chegg.com'):]
-            await message.reply('Processing... \nhttps://www.'+msg, mention_author=True)
-            print('Processing... \nhttps://www.'+msg)
+
+            msg_reply = 'Opening URL... \nhttps://www.'+msg
+            await message.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
             if 'chegg.com' in msg:
-                driver.get("https://www." + msg)
+
+                url = 'https://www.' + msg
+                connect = False
+                while not connect:
+
+                    try:
+                        driver.get(url)
+                        if is_visible_xpath(5,'/html/body/div[1]/div[4]/oc-component/div[1]/div/a'):
+                            connect = True
+                        else:
+                            print('\tINFO: Failed Accessing '+url)
+                            print('\t\tReason:')
+                            if 'denied' in driver.title:
+                                print('\t\tCaptcha detected')
+                                input('Enter to continue')
+                            else:
+                                print('\t\tUnknown reason')
+                                input('Enter to continue')
+
+                    except Exception as e:
+                        print('\tINFO: Get Exception while Accessing '+url)
+                        continue
+
                 time.sleep(random.uniform(1,2))
-                while 'denied' in driver.title:
-                    await message.reply('Captcha detected. Trying to solve it...', mention_author=True)
-                    print('Captcha detected. Trying to solve it...')
+
+                if 'denied' in driver.title:
+
+                    msg_reply = 'Captcha detected'
+                    await message.reply(msg_reply, mention_author=True)
+                    print('\tINFO: '+msg_reply)
+                    input('Enter to continue')
+
                     time.sleep(random.uniform(3,6))
+
+                    # Atempting to beat captcha but still won't work
+
                     # if is_visible_xpath(5,"//iframe[@role='presentation']"):
                     #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
                     #     print("switched to //iframe[@role='presentation']")
@@ -180,25 +245,35 @@ class MyClient(discord.Client):
                     # driver.find_element_by_id('audio-response').send_keys(captcha_text)
                     # driver.find_element_by_id('recaptcha-verify-button').click()
 
+
                 driver.switch_to.default_content()
-                is_visible_class(3,'question-text')
-                await message.reply('Page loaded successfully. Processing PDF...', mention_author=True)
-                print('Page loaded successfully. Processing PDF...')
+
+                if is_visible_class(3,'question-text'):
+                    msg_reply = 'Page loaded successfully. Processing PDF...'
+                    await message.reply(msg_reply, mention_author=True)
+                    print('\tINFO: '+msg_reply)
 
                 total_height = driver.execute_script("return document.body.parentNode.scrollHeight")
                 top_height = 0
                 n = 1
+
                 while top_height < total_height:
+
                     filepath = 'data/cache/screenshot'+str(n)+'.png'
                     driver.save_screenshot(filepath)
+
                     if (top_height + height) < total_height:
                         top_height = top_height + height - 240
                     else:
                         break
+
                     driver.execute_script("window.scrollTo(0, {})".format(top_height))
                     n = n + 1
+
                 driver.execute_script("window.scrollTo(0, 0)")
+
                 images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
+
                 x = 1
                 for im in images:
                     im = im.crop((0,75,width,height))
@@ -222,27 +297,29 @@ class MyClient(discord.Client):
 
                 image = Image.open('data/cache/ans.png')
                 pdf = open('data/cache/ans.pdf', 'wb')
+
                 pdf.write(img2pdf.convert(image.filename))
                 image.close()
                 pdf.close()
-                await message.reply('Sending PDF...', mention_author=True)
-                print('Sending PDF...')
-                await message.channel.send(file=discord.File('data/cache/ans.pdf'))
-                await message.reply('Done! :)', mention_author=True)
 
-                # await message.reply('Page loaded successfully. Sending page source...', mention_author=True)
-                # print('Page loaded successfully. Sending page source...')
-                # with open('data/cache/page.html', 'wb') as f:
-                #     f.write(driver.page_source.encode('utf-8'))
-                #     f.close()
-                # filepath = 'data/cache/page.html'
-                # await message.channel.send(file=discord.File(filepath))
-                # await message.reply('Done! Page source has been sent :)', mention_author=True)
-                print('Success!')
+                msg_reply = 'Sending PDF...'
+                await message.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
+
+                await message.channel.send(file=discord.File('data/cache/ans.pdf'))
+
+                msg_reply = 'Done! :)'
+                await message.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
+
                 pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
-                print('Cookie saved')
+                print('\tINFO: Cookie saved')
+
             else:
-                await message.reply('Not chegg link', mention_author=True)
+
+                msg_reply = 'Not a chegg link'
+                await message.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
 
 client = MyClient()
 client.run(botToken)
