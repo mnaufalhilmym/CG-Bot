@@ -1,0 +1,248 @@
+import discord, pickle, random, time, os, dotenv, unicodedata, glob, sys, img2pdf
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException
+import speech_recognition as sr
+from os import path
+from pydub import AudioSegment
+import json
+from PIL import Image
+
+
+# Variable
+dotenv.load_dotenv()
+botToken = os.getenv("dcBotToken")
+siteEmail = os.getenv("cgUname")
+sitePassword = os.getenv("cgPass")
+
+def is_visible_xpath(timeout,locator):
+    try:
+        WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH, locator)))
+        return True
+    except TimeoutException:
+        return False
+
+def is_visible_class(timeout,locator):
+    try:
+        WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.CLASS_NAME, locator)))
+        return True
+    except TimeoutException:
+        return False
+
+def is_visible_id(timeout,locator):
+    try:
+        WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.ID, locator)))
+        return True
+    except TimeoutException:
+        return False
+
+def is_visible_tag(timeout,locator):
+    try:
+        WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.TAG_NAME, locator)))
+        return True
+    except TimeoutException:
+        return False
+
+
+# Starting
+options = webdriver.ChromeOptions()
+options.add_argument("--start-maximized")
+options.add_argument("download.default_directory=C:/Users/Acer/Labs/cheggbot/CG-Bot/data")
+settings = {
+       "recentDestinations": [{
+            "id": "Save as PDF",
+            "origin": "local",
+            "account": "",
+        }],
+        "selectedDestinationId": "Save as PDF",
+        "version": 2
+    }
+prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings),
+        'savefile.default_directory': 'C:/Users/Acer/Labs/cheggbot/CG-Bot/data/cache'}
+options.add_experimental_option('prefs', prefs)
+options.add_argument('--kiosk-printing')
+driver = webdriver.Chrome(options=options)
+
+if os.path.isfile("data/cgCookies.pkl"):
+    driver.get("http://google.com")
+    time.sleep(random.uniform(1,2))
+    cookies = pickle.load(open("data/cgCookies.pkl", "rb"))
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+    print('cookie loaded')
+else:
+    driver.get("https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F")
+    time.sleep(random.uniform(2,3))
+    driver.find_element_by_xpath('//*[@id="emailForSignIn"]').send_keys(siteEmail)
+    time.sleep(random.uniform(2,3))
+    driver.find_element_by_xpath('//*[@id="passwordForSignIn"]').send_keys(sitePassword)
+    time.sleep(random.uniform(2,3))
+    driver.find_element_by_xpath('//*[@id="eggshell-8"]/form/div/div/div/footer/button').click()
+    if is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
+        print('login success')
+    time.sleep(random.uniform(1,2))
+    pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
+    print('cookie saved')
+
+height = 890
+width = 1900
+
+
+
+def captcha_voice():
+    # convert mp3 file to wav                                                       
+    sound = AudioSegment.from_mp3("data/audio.mp3")
+    sound.export("data/audio.wav", format="wav")
+
+    # transcribe audio file                                                         
+    AUDIO_FILE = "data/audio.wav"
+
+    # use the audio file as the audio source                                        
+    r = sr.Recognizer()
+    with sr.AudioFile(AUDIO_FILE) as source:
+        audio = r.record(source)  # read the entire audio file                  
+        captcha_text = r.recognize_google(audio)
+        print("Transcription: " + captcha_text)
+    
+    os.remove('data/audio.mp3')
+    os.remove('data/audio.wav')
+
+
+# Process
+class MyClient(discord.Client):
+    async def on_ready(self):
+        print('Logged in as:')
+        print('\tUsername: '+str(self.user.name))
+        print('\tUser ID: '+str(self.user.id))
+        print('\tStatus: Ready')
+        print('------')
+
+    async def on_message(self, message):
+        # Prevent bot to reply to itself
+        if message.author.id == self.user.id:
+            return
+        # if message.author.bot:
+        #     return
+
+        if message.content.startswith('!getcg'):
+            msg = message.content
+            msg = msg[msg.find('chegg.com'):]
+            await message.reply('Processing... \nhttps://www.'+msg, mention_author=True)
+            print('Processing... \nhttps://www.'+msg)
+            if 'chegg.com' in msg:
+                driver.get("https://www." + msg)
+                time.sleep(random.uniform(1,2))
+                while 'denied' in driver.title:
+                    await message.reply('Captcha detected. Trying to solve it...', mention_author=True)
+                    print('Captcha detected. Trying to solve it...')
+                    time.sleep(random.uniform(3,6))
+                    # if is_visible_xpath(5,"//iframe[@role='presentation']"):
+                    #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@role='presentation']"))
+                    #     print("switched to //iframe[@role='presentation']")
+
+                    # if is_visible_xpath(5,'//*[@id="recaptcha-anchor"]'):
+                    #     driver.find_element_by_xpath('//*[@id="recaptcha-anchor"]').click()
+                    #     print("//*[@id='recaptcha-anchor'] clicked")
+                    #     time.sleep(random.uniform(3,6))
+
+                    # driver.switch_to.default_content()
+                    # print("switch_to.default_content()")
+
+                    # if is_visible_xpath(5,"//iframe[@title='recaptcha challenge']"):
+                    #     driver.switch_to.frame(driver.find_element_by_xpath("//iframe[@title='recaptcha challenge']"))
+                    #     print("switched to//iframe[@title='recaptcha challenge']")
+                        
+                    #     # driver.switch_to.default_content()
+                    #     # print("switch_to.default_content()")
+
+                    #     if is_visible_xpath(5,'//button[@id="recaptcha-audio-button"]'):
+                    #         driver.find_element_by_xpath('//button[@id="recaptcha-audio-button"]').click()
+                    #         print('//button[@id="recaptcha-audio-button"] clicked')
+                    #         time.sleep(random.uniform(3,6))
+
+                    #         if is_visible_xpath(5,'//a[@title="Alternatively, download audio as MP3"]'):
+                    #             driver.find_element_by_xpath('//a[@title="Alternatively, download audio as MP3"]').click()
+                    #             print('//a[@title="Alternatively, download audio as MP3"]')
+                    # time.sleep(random.uniform(59,62))
+
+
+                    # is_visible_class(3,'rc-audiochallenge-tdownload-link')
+                    # link = driver.find_element_by_class_name('rc-audiochallenge-tdownload-link')
+                    # href = link.get_attribute('href')
+                    # link.send_keys(Keys.COMMAND + 't')
+                    # driver.get(href)
+                    # captcha_voice()
+                    # link.send_keys(Keys.COMMAND + 'w')
+                    # is_visible_class(3,'audio-response')
+                    # driver.find_element_by_id('audio-response').send_keys(captcha_text)
+                    # driver.find_element_by_id('recaptcha-verify-button').click()
+
+                driver.switch_to.default_content()
+                is_visible_class(3,'question-text')
+                await message.reply('Page loaded successfully. Processing PDF...', mention_author=True)
+                print('Page loaded successfully. Processing PDF...')
+
+                total_height = driver.execute_script("return document.body.parentNode.scrollHeight")
+                top_height = 0
+                n = 1
+                while top_height < total_height:
+                    filepath = 'data/cache/screenshot'+str(n)+'.png'
+                    driver.save_screenshot(filepath)
+                    if (top_height + height) < total_height:
+                        top_height = top_height + height - 240
+                    else:
+                        break
+                    driver.execute_script("window.scrollTo(0, {})".format(top_height))
+                    n = n + 1
+                driver.execute_script("window.scrollTo(0, 0)")
+                images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
+                x = 1
+                for im in images:
+                    im = im.crop((0,75,width,height))
+                    im.save('data/cache/ans'+str(x)+'.png', quality=50)
+                    x = x + 1
+
+                images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n)]
+                widths, heights = zip(*(i.size for i in images))
+                max_width = max(widths)
+                total_height = sum(heights)
+
+                new_im = Image.new('RGB', (max_width, total_height))
+
+                y_offset = 0
+                n = 0
+                for im in images:
+                    new_im.paste(im, (0,y_offset))
+                    y_offset += im.size[1] - 2
+
+                new_im.save('data/cache/ans.png', quality=50)
+
+                image = Image.open('data/cache/ans.png')
+                pdf = open('data/cache/ans.pdf', 'wb')
+                pdf.write(img2pdf.convert(image.filename))
+                image.close()
+                pdf.close()
+                await message.reply('Sending PDF...', mention_author=True)
+                print('Sending PDF...')
+                await message.channel.send(file=discord.File('data/cache/ans.pdf'))
+                await message.reply('Done! :)', mention_author=True)
+
+                # await message.reply('Page loaded successfully. Sending page source...', mention_author=True)
+                # print('Page loaded successfully. Sending page source...')
+                # with open('data/cache/page.html', 'wb') as f:
+                #     f.write(driver.page_source.encode('utf-8'))
+                #     f.close()
+                # filepath = 'data/cache/page.html'
+                # await message.channel.send(file=discord.File(filepath))
+                # await message.reply('Done! Page source has been sent :)', mention_author=True)
+                print('Success!')
+                pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
+                print('Cookie saved')
+            else:
+                await message.reply('Not chegg link', mention_author=True)
+
+client = MyClient()
+client.run(botToken)
