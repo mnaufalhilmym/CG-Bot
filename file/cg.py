@@ -13,11 +13,11 @@ from mega import Mega
 
 
 description = '''**TETITBbot Help**\n
-                'Revision: 23032021\n\n
-                'Usage:\n
-                '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n
-                '2. **!getcg help**     Show this help\n\n
-                '*Use this bot at your own risk*'''
+                Revision: 24032021\n\n
+                Usage:\n
+                1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n
+                2. **!getcg help**     Show this help\n\n
+                *Use this bot at your own risk*'''
 
 intents = discord.Intents.default()
 intents.members = True
@@ -245,7 +245,7 @@ async def on_message(message):
 
             msg_reply = (
                 '**TETITBbot Help**\n'+
-                'Revision: 23032021\n\n'
+                'Revision: 24032021\n\n'
                 'Usage:\n'+
                 '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n'+
                 '2. **!getcg help**     Show this help\n\n'+
