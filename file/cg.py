@@ -40,7 +40,7 @@ m_file = m.find('cgCookies.pkl',exclude_deleted=True)
 try:
     m.download(m_file,'data')
     if not os.path.isfile('data/cgCookies.pkl'):
-        print('\tINFO: Failed to synchronized cookie')
+        print('\tINFO: Failed to synchronized cache')
 except Exception as e:
     pass
 m_file = None
@@ -148,7 +148,7 @@ if os.path.isfile("data/cgCookies.pkl"):
     cookies = pickle.load(open("data/cgCookies.pkl", "rb"))
     for cookie in cookies:
         driver.add_cookie(cookie)
-    print('\tINFO: Cookie loaded')
+    print('\tINFO: Cache loaded')
 
 else:
 
@@ -184,7 +184,7 @@ else:
                 print('\tINFO: Login Successful')
                 time.sleep(random.uniform(1,2))
                 pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
-                print('\tINFO: Cookie Saved')
+                print('\tINFO: Cache saved')
 
                 connect = True
             
@@ -452,23 +452,23 @@ async def on_message(message):
                 print('\tINFO: '+msg_reply)
 
                 pickle.dump(driver.get_cookies() , open("data/cgCookies.pkl","wb"))
-                print('\tINFO: Cookie saved')
+                print('\tINFO: Cache saved')
 
                 try:
                     m_file = m.find('cgCookies.pkl')
                     m.rename(m_file, 'cgCookies.pkl.backup')
                 except Exception as e:
-                    print('\tINFO: Failed to rename cookie')
+                    print('\tINFO: Failed to rename cache')
                     pass
 
                 try:
                     m.upload('data/cgCookies.pkl')
                     if m.find('cgCookies.pkl'):
-                        print('\tINFO: Cookie synchronized')
+                        print('\tINFO: Cache synchronized')
                     else:
-                        print('\tINFO: Failed to synchronize cookie')
+                        print('\tINFO: Failed to synchronize cache')
                 except Exception as e:
-                    print('\tINFO: Failed to synchronize cookie')
+                    print('\tINFO: Failed to synchronize cache')
                     pass
                     
                 driver.get('https://www.google.com/')
