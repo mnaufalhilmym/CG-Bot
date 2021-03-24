@@ -33,17 +33,17 @@ megaEmail = os.getenv("mUname")
 megaPassword = os.getenv("mPass")
 
 
+print('\tINFO: Retrieving latest cache...')
 mega = Mega()
 m = mega.login(megaEmail,megaPassword)
 m_file = m.find('cgCookies.pkl',exclude_deleted=True)
 try:
     m.download(m_file,'data')
+    if not os.path.isfile('data/cgCookies.pkl'):
+        print('\tINFO: Failed to synchronized cookie')
 except Exception as e:
-    None
+    pass
 m_file = None
-# if os.path.isfile('cgCookies.pkl'):
-#     os.replace("cgCookies.pkl", "data/cgCookies.pkl")
-#     os.remove('cgCookies.pkl')
 
 
 def is_visible_xpath(timeout,locator):
@@ -458,10 +458,19 @@ async def on_message(message):
                     m_file = m.find('cgCookies.pkl')
                     m.rename(m_file, 'cgCookies.pkl.backup')
                 except Exception as e:
-                    None
-                m_file = m.upload('data/cgCookies.pkl')
-                m_file = None
+                    print('\tINFO: Failed to rename cookie')
+                    pass
 
+                try:
+                    m.upload('data/cgCookies.pkl')
+                    if m.find('cgCookies.pkl'):
+                        print('\tINFO: Cookie synchronized')
+                    else:
+                        print('\tINFO: Failed to synchronize cookie')
+                except Exception as e:
+                    print('\tINFO: Failed to synchronize cookie')
+                    pass
+                    
                 driver.get('https://www.google.com/')
 
         else:
