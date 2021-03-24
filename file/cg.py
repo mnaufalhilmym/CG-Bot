@@ -13,7 +13,7 @@ from mega import Mega
 
 
 description = '''**TETITBbot Help**\n
-                Revision: 24032021\n\n
+                Revision: 25032021rev1\n\n
                 Usage:\n
                 1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n
                 2. **!getcg help**     Show this help\n\n
@@ -31,16 +31,22 @@ siteEmail = os.getenv("cgUname")
 sitePassword = os.getenv("cgPass")
 megaEmail = os.getenv("mUname")
 megaPassword = os.getenv("mPass")
-
+# Fixed window size
+height = 943
+width = 1920 - 20
+scr_height = str(height)
+scr_width = str(width)
 
 print('\tINFO: Retrieving latest cache...')
 mega = Mega()
 m = mega.login(megaEmail,megaPassword)
 m_file = m.find('cgCookies.pkl',exclude_deleted=True)
+if not m_file:
+    print('\tINFO: Failed to synchronized cache. Skipping...')
 try:
     m.download(m_file,'data')
     if not os.path.isfile('data/cgCookies.pkl'):
-        print('\tINFO: Failed to synchronized cache')
+        print('\tINFO: Failed to synchronized cache. Skipping...')
 except Exception as e:
     pass
 m_file = None
@@ -114,7 +120,8 @@ prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings)
 options.add_experimental_option('prefs', prefs)
 options.add_argument('--kiosk-printing')
 
-options.add_argument("--start-maximized")
+# options.add_argument("--start-maximized")
+options.add_argument("window-size="+scr_width+','+scr_height)
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
@@ -212,14 +219,15 @@ else:
             print('\tINFO: Get Exception while loging in URL:\n'+url)
             continue
 
-filepath = 'data/cache/initial.png'
-driver.save_screenshot(filepath)
-im = Image.open(filepath)
-vw_width, vw_height = im.size
-im.close()
+# filepath = 'data/cache/initial.png'
+# driver.save_screenshot(filepath)
+# im = Image.open(filepath)
+# vw_width, vw_height = im.size
+# im.close()
 
-height = vw_height
-width = vw_width - 20
+# height = vw_height
+# width = vw_width - 20
+
 
 # Process
 @bot.event
@@ -245,7 +253,7 @@ async def on_message(message):
 
             msg_reply = (
                 '**TETITBbot Help**\n'+
-                'Revision: 24032021\n\n'
+                'Revision: 25032021rev1\n\n'
                 'Usage:\n'+
                 '1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*\n'+
                 '2. **!getcg help**     Show this help\n\n'+
@@ -380,7 +388,7 @@ async def on_message(message):
 
                 driver.switch_to.default_content()
 
-                if is_visible_class(3,'question-text'):
+                if is_visible_class(3,'chg-container-content'):
                     msg_reply = 'Page loaded successfully. Processing image...'
                     await message.reply(msg_reply, mention_author=True)
                     print('\tINFO: '+msg_reply)
@@ -458,7 +466,7 @@ async def on_message(message):
                     m_file = m.find('cgCookies.pkl')
                     m.rename(m_file, 'cgCookies.pkl.backup')
                 except Exception as e:
-                    print('\tINFO: Failed to rename cache')
+                    print('\tINFO: Failed to rename cache. Skipping...')
                     pass
 
                 try:
@@ -466,9 +474,9 @@ async def on_message(message):
                     if m.find('cgCookies.pkl'):
                         print('\tINFO: Cache synchronized')
                     else:
-                        print('\tINFO: Failed to synchronize cache')
+                        print('\tINFO: Failed to synchronize cache. Skipping...')
                 except Exception as e:
-                    print('\tINFO: Failed to synchronize cache')
+                    print('\tINFO: Failed to synchronize cache. Skipping...')
                     pass
                     
                 driver.get('https://www.google.com/')
