@@ -295,13 +295,15 @@ async def getcg(ctx, *arg):
         msg_reply = 'Try using a command. See *!getcg help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
-        print('\t------STANDBY------')
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
 
     elif 'help' == arg[0]:
         msg_reply = description
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: Showing help to user')
-        print('\t------STANDBY------')
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
 
     elif 'chegg.com' in arg[0]:
         msg = arg[0]
@@ -538,13 +540,15 @@ async def getcg(ctx, *arg):
                 pass
                 
             driver.get('https://www.google.com/')
-            print('\t------STANDBY------')
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
 
     else:
         msg_reply = 'Unsupported command. See *!getcg help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
-        print('\t------STANDBY------')
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
 
      
 bot.run(botToken)
