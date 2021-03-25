@@ -75,13 +75,20 @@ while not is_valid_cache:
         except Exception as e:
             # print('\tEXCEPTION: '+str(e))
             pass
-    if os.path.getsize(cache) > 0:
-        is_valid_cache = True
+    if os.path.isfile(cache):
+        if os.path.getsize(cache) > 0:
+            is_valid_cache = True
+            break
+        else:
+            print('\tWARNING: Cache not valid. Retrieving previous cache...')
+            m.rename(m_file, 'cgCookies.pkl.invalid')
+            m_file = m.find('cgCookies.pkl.backup',exclude_deleted=True)
+            m.rename(m_file, 'cgCookies.pkl')
     else:
-        print('\tWARNING: Cache not valid. Retrieving previous cache...')
-        m.rename(m_file, 'cgCookies.pkl.invalid')
-        m_file = m.find('cgCookies.pkl.backup',exclude_deleted=True)
-        m.rename(m_file, 'cgCookies.pkl')
+        print('\tWARNING: Starting a new session. If the bot continues to work, it may conflict with other caches. Proceed with caution! If you are not sure, close the bot now!')
+        print('\tWARNING: You have 10 seconds to decide.')
+        time.sleep(10)
+        is_valid_cache = True
 
 m_file = None
 
@@ -203,6 +210,7 @@ if os.path.isfile(cache) and os.path.getsize(cache) > 0:
 
 elif os.path.isfile(cache):
     print('\tINFO: Invalid cache. Please restart this bot!')
+    time.sleep(3)
     driver.quit()
     exit()
 
@@ -210,10 +218,8 @@ else:
     url = 'https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F'
     connect = False
     while not connect:
-
         try:
-
-            if url != driver.current_url:
+            if url != driver.current_url or not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
                 driver.get(url)
             print('\tINFO: Accessing URL:\n'+url)
             time.sleep(random.uniform(2,3))
@@ -224,16 +230,16 @@ else:
                 print('\tINFO: Email '+cgUname+' Filled')
                 time.sleep(random.uniform(2,3))
             
-            xpath = '//*[@id="passwordForSignIn"]'
-            if is_visible_xpath(5,xpath):
-                driver.find_element_by_xpath(xpath).send_keys(cgPass)
-                print('\tINFO: Password '+cgPass+' Filled')
-                time.sleep(random.uniform(2,3))
+                xpath = '//*[@id="passwordForSignIn"]'
+                if is_visible_xpath(5,xpath):
+                    driver.find_element_by_xpath(xpath).send_keys(cgPass)
+                    print('\tINFO: Password '+cgPass+' Filled')
+                    time.sleep(random.uniform(2,3))
 
-            xpath = '//button[@class="login-button button flat"]'
-            if is_visible_xpath(5,xpath):
-                driver.find_element_by_xpath(xpath).click()
-                print('\tINFO: Login Button Clicked')
+                    xpath = '//button[@class="login-button button flat"]'
+                    if is_visible_xpath(5,xpath):
+                        driver.find_element_by_xpath(xpath).click()
+                        print('\tINFO: Login Button Clicked')
 
             if is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
                 print('\tINFO: Login Successful')
