@@ -66,12 +66,12 @@ is_valid_cache = False
 while not is_valid_cache:
     m_file = m.find('cgCookies.pkl',exclude_deleted=True)
     if not m_file:
-        print('\tWARNING: Failed to synchronized cache. Skipping...')
+        print('\tWARNING: Failed to synchronized cache. Cache not found in cloud. Skipping...')
     else:
         try:
             m.download(m_file,'data')
             if not os.path.isfile(cache):
-                print('\tWARNING: Failed to synchronized cache. Skipping...')
+                print('\tWARNING: Failed to download cache from cloud. Skipping...')
         except Exception as e:
             # print('\tEXCEPTION: '+str(e))
             pass
