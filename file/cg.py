@@ -219,22 +219,22 @@ else:
     connect = False
     while not connect:
         try:
-            if url != driver.current_url or not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
+            if url != driver.current_url and not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
                 driver.get(url)
-            print('\tINFO: Accessing URL:\n'+url)
-            time.sleep(random.uniform(2,3))
+                print('\tINFO: Accessing URL:\n'+url)
+            time.sleep(random.uniform(4,6))
 
             xpath = '//*[@id="emailForSignIn"]'
             if is_visible_xpath(5,xpath):
                 driver.find_element_by_xpath(xpath).send_keys(cgUname)
                 print('\tINFO: Email '+cgUname+' Filled')
-                time.sleep(random.uniform(2,3))
+                time.sleep(random.uniform(4,6))
             
                 xpath = '//*[@id="passwordForSignIn"]'
                 if is_visible_xpath(5,xpath):
                     driver.find_element_by_xpath(xpath).send_keys(cgPass)
                     print('\tINFO: Password '+cgPass+' Filled')
-                    time.sleep(random.uniform(2,3))
+                    time.sleep(random.uniform(4,6))
 
                     xpath = '//button[@class="login-button button flat"]'
                     if is_visible_xpath(5,xpath):
