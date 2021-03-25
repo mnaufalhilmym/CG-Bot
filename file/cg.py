@@ -38,8 +38,8 @@ sitePassword = os.getenv("cgPass")
 megaEmail = os.getenv("mUname")
 megaPassword = os.getenv("mPass")
 # Fixed window size
-height = 943
-width = 1920 - 20
+height = 720
+width = 1280
 scr_height = str(height)
 scr_width = str(width)
 
@@ -323,9 +323,9 @@ async def getcg(ctx, *arg):
                     driver.get(url)
                     await asyncio.sleep(random.uniform(2,3))
 
-                if not 'denied' in driver.title:
-                    wait.until(EC.presence_of_element_located((By.XPATH, "//div[@class='chg-container-content']")))
-                    driver.execute_script("window.stop();")
+                # if not 'denied' in driver.title:
+                    # wait.until(EC.presence_of_element_located((By.XPATH, "//div[@class='chg-container-content']")))
+                    # driver.execute_script("window.stop();")
 
                     # xpath = '//*[@class="view-sample-solution"]'
                     # if is_visible_xpath(5,xpath):
@@ -453,30 +453,33 @@ async def getcg(ctx, *arg):
 
 
             n = 1
-            # minus = -60
-            minus = -249
+            # browser_head = 80
+            chegg_head = 60
+            # minus = - (browser_head + chegg_head + 8)
+            minus = - (chegg_head + 15)
+            width = driver.execute_script("return window.innerWidth")
+            height = driver.execute_script("return window.innerHeight")
+            
+            driver.execute_script("window.scrollTo(0, 0)")
             while top_height < total_height:
-
                 filepath = 'data/cache/screenshot'+str(n)+'.png'
                 driver.save_screenshot(filepath)
                 n = n + 1
 
                 if (top_height + height) < total_height + minus:
-                    # top_height = top_height + height + minus
                     top_height = top_height + height + minus
                 else:
                     break
 
                 driver.execute_script("window.scrollTo(0, {})".format(top_height))
 
-            driver.execute_script("window.scrollTo(0, 0)")
 
             images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
 
             x = 1
             for im in images:
-                # im = im.crop((0,60,width,height))
-                im = im.crop((0,75,width,height))
+                im = im.crop((0,60,im.size[0],im.size[1]))
+                # im = im.crop((0,75,width,height))
                 im.save('data/cache/ans'+str(x)+'.png', quality=50)
                 x = x + 1
 
