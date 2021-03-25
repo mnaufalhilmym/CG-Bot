@@ -1,4 +1,4 @@
-import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, signal, atexit, sys, glob
+import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob
 from discord.ext import commands
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,11 +16,14 @@ from mega import Mega
 description = (
 '''
 **TETITBbot Help**
-Revision: 25032021rev3
+Revision: 25032021rev4
 
 Usage:
+**!getcg**
 1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*
-2. **!getcg help**     Show this help
+**!cfg**
+1. **!cfg display_scale view**     View current bot display scale
+2. **!cfg display_scale [INTEGER]**     Change bot display scale
 
 *Use this bot at your own risk*
 ''' )
@@ -37,12 +40,22 @@ siteEmail = os.getenv("cgUname")
 sitePassword = os.getenv("cgPass")
 megaEmail = os.getenv("mUname")
 megaPassword = os.getenv("mPass")
+
 # Fixed window size
 height = 720
 width = 1280
 scr_height = str(height)
 scr_width = str(width)
-
+display_scale = 100
+if os.path.isfile('data/config'):
+    ds = open('data/config','r')
+    display_scale = ds.read()
+    display_scale = display_scale[display_scale.find('#1:')+3:]
+    ds.close()
+    print('\tINFO: Using display scale: '+display_scale+'%')
+    display_scale = float(display_scale)
+else:
+    print('\tINFO: Using default display scale (100%)')
 
 print('\tINFO: Retrieving latest cache...')
 mega = Mega()
@@ -54,13 +67,14 @@ while not is_valid_cache:
     m_file = m.find('cgCookies.pkl',exclude_deleted=True)
     if not m_file:
         print('\tWARNING: Failed to synchronized cache. Skipping...')
-    try:
-        m.download(m_file,'data')
-        if not os.path.isfile(cache):
-            print('\tWARNING: Failed to synchronized cache. Skipping...')
-    except Exception as e:
-        # print('\tEXCEPTION: '+str(e))
-        pass
+    else:
+        try:
+            m.download(m_file,'data')
+            if not os.path.isfile(cache):
+                print('\tWARNING: Failed to synchronized cache. Skipping...')
+        except Exception as e:
+            # print('\tEXCEPTION: '+str(e))
+            pass
     if os.path.getsize(cache) > 0:
         is_valid_cache = True
     else:
@@ -290,6 +304,55 @@ async def on_ready():
     print('\t------READY------')
 
 @bot.command()
+async def cfg(ctx, *arg):
+    if not arg:
+        msg_reply = 'Try using a command. See *!cfg help*'
+        await ctx.reply(msg_reply, mention_author=True)
+        print('\tINFO: '+msg_reply)
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
+
+    elif 'help' == arg[0]:
+        msg_reply = description
+        await ctx.reply(msg_reply, mention_author=True)
+        print('\tINFO: Showing cfg help to user')
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
+
+    elif 'display_scale' == arg[0]:
+        global display_scale
+        ds_arg = arg[1]
+        if 'view' == ds_arg:
+            msg_reply = 'Bot display scale is: '+str(display_scale)+'%'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
+
+        else:
+            display_scale = arg[1]
+            ds = open('data/config','w')
+            ds.write('displayScale#1:'+display_scale)
+            ds.close()
+
+            msg_reply = 'Display scale changed to: '+display_scale+'%'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
+            display_scale = float(display_scale)
+
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
+
+    else:
+        msg_reply = 'Unsupported command. See *!cfg help*'
+        await ctx.reply(msg_reply, mention_author=True)
+        print('\tINFO: '+msg_reply)
+        print('\tINFO: Finished processing request from '+ctx.author.mention)
+        print('\t------DONE------')
+
+@bot.command()
 async def getcg(ctx, *arg):
     if not arg:
         msg_reply = 'Try using a command. See *!getcg help*'
@@ -301,7 +364,7 @@ async def getcg(ctx, *arg):
     elif 'help' == arg[0]:
         msg_reply = description
         await ctx.reply(msg_reply, mention_author=True)
-        print('\tINFO: Showing help to user')
+        print('\tINFO: Showing getcg help to user')
         print('\tINFO: Finished processing request from '+ctx.author.mention)
         print('\t------DONE------')
 
@@ -451,12 +514,13 @@ async def getcg(ctx, *arg):
             total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
             top_height = 0
 
-
             n = 1
             # browser_head = 80
-            chegg_head = 60
+            chegg_head = float(display_scale/100.0)*60.0
+            print('\tINFO: Using chegg_head: '+str(chegg_head))
             # minus = - (browser_head + chegg_head + 8)
-            minus = - (chegg_head + 15)
+            minus = - 60
+            print('\tINFO: Using minus: '+str(minus))
             width = driver.execute_script("return window.innerWidth")
             height = driver.execute_script("return window.innerHeight")
             
@@ -464,21 +528,23 @@ async def getcg(ctx, *arg):
             while top_height < total_height:
                 filepath = 'data/cache/screenshot'+str(n)+'.png'
                 driver.save_screenshot(filepath)
-                n = n + 1
 
                 if (top_height + height) < total_height + minus:
                     top_height = top_height + height + minus
                 else:
                     break
 
-                driver.execute_script("window.scrollTo(0, {})".format(top_height))
+                n = n + 1
+
+                driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
 
 
             images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
 
+            scrollbar_width = 17
             x = 1
             for im in images:
-                im = im.crop((0,60,im.size[0],im.size[1]))
+                im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
                 # im = im.crop((0,75,width,height))
                 im.save('data/cache/ans'+str(x)+'.png', quality=50)
                 x = x + 1
