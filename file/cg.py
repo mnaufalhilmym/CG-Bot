@@ -36,10 +36,10 @@ bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 # Variable
 dotenv.load_dotenv()
 botToken = os.getenv("dcBotToken")
-siteEmail = os.getenv("cgUname")
-sitePassword = os.getenv("cgPass")
-megaEmail = os.getenv("mUname")
-megaPassword = os.getenv("mPass")
+cgUname = os.getenv("cgUname")
+cgPass = os.getenv("cgPass")
+mUname = os.getenv("mUname")
+mPass = os.getenv("mPass")
 
 # Fixed window size
 height = 720
@@ -59,7 +59,7 @@ else:
 
 print('\tINFO: Retrieving latest cache...')
 mega = Mega()
-m = mega.login(megaEmail,megaPassword)
+m = mega.login(mUname,mPass)
 cache = 'data/cgCookies.pkl'
 
 is_valid_cache = False
@@ -220,14 +220,14 @@ else:
 
             xpath = '//*[@id="emailForSignIn"]'
             if is_visible_xpath(5,xpath):
-                driver.find_element_by_xpath(xpath).send_keys(siteEmail)
-                print('\tINFO: Email '+siteEmail+' Filled')
+                driver.find_element_by_xpath(xpath).send_keys(cgUname)
+                print('\tINFO: Email '+cgUname+' Filled')
                 time.sleep(random.uniform(2,3))
             
             xpath = '//*[@id="passwordForSignIn"]'
             if is_visible_xpath(5,xpath):
-                driver.find_element_by_xpath(xpath).send_keys(sitePassword)
-                print('\tINFO: Password '+sitePassword+' Filled')
+                driver.find_element_by_xpath(xpath).send_keys(cgPass)
+                print('\tINFO: Password '+cgPass+' Filled')
                 time.sleep(random.uniform(2,3))
 
             xpath = '//button[@class="login-button button flat"]'
