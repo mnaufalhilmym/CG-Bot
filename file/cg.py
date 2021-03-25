@@ -16,7 +16,7 @@ from mega import Mega
 description = (
 '''
 **TETITBbot Help**
-Revision: 25032021rev2
+Revision: 25032021rev3
 
 Usage:
 1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*
