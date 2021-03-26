@@ -313,7 +313,7 @@ async def on_ready():
 async def help(ctx, *arg):
     msg_reply = description
     await ctx.reply(msg_reply, mention_author=True)
-    print('\tINFO: Showing cfg help to user')
+    print('\tINFO: Showing help to user')
     print('\tINFO: Finished processing request from '+ctx.author.mention)
     print('\t------DONE------')
 
