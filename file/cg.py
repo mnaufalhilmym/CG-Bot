@@ -16,7 +16,7 @@ from mega import Mega
 description = (
 '''
 **TETITBbot Help**
-Revision: 25032021rev4
+Revision: 26032021rev1
 
 Usage:
 **!getcg**
