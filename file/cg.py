@@ -16,7 +16,7 @@ from mega import Mega
 description = (
 '''
 **TETITBbot Help**
-Revision: 26032021rev1
+Revision: 26032021rev2
 
 Usage:
 **!getcg**
@@ -60,11 +60,11 @@ else:
 print('\tINFO: Retrieving latest cache...')
 mega = Mega()
 m = mega.login(mUname,mPass)
-cache = 'data/cgCookies.pkl'
+cache = 'data/botCache.pkl'
 
 is_valid_cache = False
 while not is_valid_cache:
-    m_file = m.find('cgCookies.pkl',exclude_deleted=True)
+    m_file = m.find('botCache.pkl',exclude_deleted=True)
     if not m_file:
         print('\tWARNING: Failed to synchronized cache. Cache not found in cloud. Skipping...')
     else:
@@ -81,13 +81,13 @@ while not is_valid_cache:
             break
         else:
             print('\tWARNING: Cache not valid. Retrieving previous cache...')
-            m.rename(m_file, 'cgCookies.pkl.invalid')
-            m_file = m.find('cgCookies.pkl.backup',exclude_deleted=True)
-            m.rename(m_file, 'cgCookies.pkl')
+            m.rename(m_file, 'botCache.pkl.invalid')
+            m_file = m.find('botCache.pkl.backup',exclude_deleted=True)
+            m.rename(m_file, 'botCache.pkl')
     else:
         print('\tWARNING: Starting a new session. If the bot continues to work, it may conflict with other caches. Proceed with caution! If you are not sure, close the bot now!')
-        print('\tWARNING: You have 10 seconds to decide.')
-        time.sleep(10)
+        print('\tWARNING: You have 15 seconds to decide.')
+        time.sleep(15)
         is_valid_cache = True
 
 m_file = None
@@ -222,26 +222,29 @@ else:
             if url != driver.current_url and not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
                 driver.get(url)
                 print('\tINFO: Accessing URL:\n'+url)
-            time.sleep(random.uniform(4,6))
+                time.sleep(random.uniform(4,6))
 
             xpath = '//*[@id="emailForSignIn"]'
             if is_visible_xpath(5,xpath):
+                time.sleep(random.uniform(2,6))
                 driver.find_element_by_xpath(xpath).send_keys(cgUname)
                 print('\tINFO: Email '+cgUname+' Filled')
                 time.sleep(random.uniform(4,6))
             
                 xpath = '//*[@id="passwordForSignIn"]'
                 if is_visible_xpath(5,xpath):
+                    time.sleep(random.uniform(2,6))
                     driver.find_element_by_xpath(xpath).send_keys(cgPass)
                     print('\tINFO: Password '+cgPass+' Filled')
                     time.sleep(random.uniform(4,6))
 
-                    xpath = '//button[@class="login-button button flat"]'
+                    xpath = '//button[@type="submit"]'
                     if is_visible_xpath(5,xpath):
+                        time.sleep(random.uniform(2,6))
                         driver.find_element_by_xpath(xpath).click()
                         print('\tINFO: Login Button Clicked')
 
-            if is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
+            if is_visible_xpath(30,'//*[@id="eggshell-5"]/img'):
                 print('\tINFO: Login Successful')
                 time.sleep(random.uniform(1,2))
                 pickle.dump(driver.get_cookies() , open(cache,"wb"))
@@ -303,14 +306,14 @@ atexit.register(exit_handler)
 # Process
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="!help"))
+    await bot.change_presence(activity=discord.Game(name="!cmd"))
     print('\tLogged in as:')
     print('\tUsername: '+str(bot.user.name))
     print('\tUser ID: '+str(bot.user.id))
     print('\t------READY------')
 
 @bot.command()
-async def help(ctx, *arg):
+async def cmd(ctx):
     msg_reply = description
     await ctx.reply(msg_reply, mention_author=True)
     print('\tINFO: Showing help to user')
@@ -335,8 +338,17 @@ async def cfg(ctx, *arg):
 
     elif 'display_scale' == arg[0]:
         global display_scale
-        ds_arg = arg[1]
-        if 'view' == ds_arg:
+
+        try:
+            is_valid = arg[1]
+        except Exception as e:
+            msg_reply = 'Try using a command. See *!cfg help*'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
+
+        if 'view' == arg[1]:
             msg_reply = 'Bot display scale is: '+str(display_scale)+'%'
             await ctx.reply(msg_reply, mention_author=True)
             print('\tINFO: '+msg_reply)
@@ -345,16 +357,25 @@ async def cfg(ctx, *arg):
             print('\t------DONE------')
 
         else:
+            try:
+                is_float = float(arg[1])
+                is_float + 1
+            except Exception as e:
+                msg_reply = 'Wrong value. See *!cfg help*'
+                await ctx.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
+                print('\tINFO: Finished processing request from '+ctx.author.mention)
+                print('\t------DONE------')
+
             display_scale = arg[1]
             ds = open('data/config','w')
             ds.write('displayScale#1:'+display_scale)
             ds.close()
 
-            msg_reply = 'Display scale changed to: '+display_scale+'%'
+            display_scale = float(display_scale)
+            msg_reply = 'Display scale changed to: '+str(display_scale)+'%'
             await ctx.reply(msg_reply, mention_author=True)
             print('\tINFO: '+msg_reply)
-
-            display_scale = float(display_scale)
 
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
@@ -602,19 +623,19 @@ async def getcg(ctx, *arg):
 
             try:
                 try:
-                    m_file = m.find('cgCookies.pkl.backup')
-                    m.rename(m_file, 'cgCookies.pkl.backup.backup')
+                    m_file = m.find('botCache.pkl.backup')
+                    m.rename(m_file, 'botCache.pkl.backup.backup')
                 except Exception as e:
                     pass
-                m_file = m.find('cgCookies.pkl')
-                m.rename(m_file, 'cgCookies.pkl.backup')
+                m_file = m.find('botCache.pkl')
+                m.rename(m_file, 'botCache.pkl.backup')
             except Exception as e:
                 print('\tWARNING: Failed to rename cache. Skipping...')
                 pass
 
             try:
-                m.upload('data/cgCookies.pkl')
-                if m.find('cgCookies.pkl'):
+                m.upload('data/botCache.pkl')
+                if m.find('botCache.pkl'):
                     print('\tINFO: Cache synchronized')
                 else:
                     print('\tWARNING: Failed to synchronize cache. Skipping...')
