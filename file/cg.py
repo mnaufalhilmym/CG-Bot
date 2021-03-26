@@ -303,11 +303,19 @@ atexit.register(exit_handler)
 # Process
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="!getcg help"))
+    await bot.change_presence(activity=discord.Game(name="!help"))
     print('\tLogged in as:')
     print('\tUsername: '+str(bot.user.name))
     print('\tUser ID: '+str(bot.user.id))
     print('\t------READY------')
+
+@bot.command()
+async def help(ctx, *arg):
+    msg_reply = description
+    await ctx.reply(msg_reply, mention_author=True)
+    print('\tINFO: Showing cfg help to user')
+    print('\tINFO: Finished processing request from '+ctx.author.mention)
+    print('\t------DONE------')
 
 @bot.command()
 async def cfg(ctx, *arg):
