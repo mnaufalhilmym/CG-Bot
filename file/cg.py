@@ -63,7 +63,7 @@ is_active = False
 while not is_active:
     m_active = m.find('nonactive',exclude_deleted=True)
     if not m_active:
-        print('\tWARNING: Another bot is currently active. Please try again when no other bot is active!')
+        print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
     else:
         m.rename(m_active, 'active')
         print('\tINFO: Bot status changed to active.')
@@ -224,7 +224,7 @@ def exit_handler():
         if m_active:
             print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
         else:
-            print('\tINFO: Success change bot status. Exiting bot...')
+            print('\tINFO: Successfully changed the bot status to nonactive. Exiting bot...')
             is_active = False
     driver.quit()
     time.sleep(1)
@@ -576,12 +576,12 @@ async def c(ctx, *arg):
             driver.switch_to.default_content()
             
             # await asyncio.sleep(random.uniform(4,6))
-            if is_visible_class(3, '//*[@id="solutionHeader"]'):
-                if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section'):
-                    msg_reply = 'Page loaded successfully. Processing image...'
-                    await msg_send.edit(content=msg_reply)
-                    print('\tINFO: '+msg_reply)
-            elif is_visible_xpath(5,'/html/body/div[1]/div[5]/div[2]/div[2]/div/div[1]/div[1]/div[3]/div[2]'):
+            if is_visible_xpath(5, '//*[@id="solution-player-sdk"]'):
+                await asyncio.sleep(random.uniform(3,5))
+                msg_reply = 'Page loaded successfully. Processing image...'
+                await msg_send.edit(content=msg_reply)
+                print('\tINFO: '+msg_reply)
+            elif is_visible_xpath(5,'//*[@itemprop="headline"]'):
                 msg_reply = 'Page loaded successfully. Processing image...'
                 await msg_send.edit(content=msg_reply)
                 print('\tINFO: '+msg_reply)
@@ -591,13 +591,12 @@ async def c(ctx, *arg):
             top_height = 0
 
 
-
             head = 60.0
             plus = 0
             plus2 = 0
-            if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section'):
+            if is_visible_xpath(5,'//*[@id="solution-player-sdk"]'):
                 head = 113.0
-                plus = 16
+                plus = 14
                 plus2 = 12
 
             n = 1
