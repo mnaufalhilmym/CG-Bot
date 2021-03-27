@@ -576,10 +576,16 @@ async def c(ctx, *arg):
             driver.switch_to.default_content()
             
             # await asyncio.sleep(random.uniform(4,6))
-            if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section') or is_visible_xpath(5,'//*[@itemprop="headline"'):
+            if is_visible_class(3, '//*[@id="solutionHeader"]'):
+                if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section'):
+                    msg_reply = 'Page loaded successfully. Processing image...'
+                    await msg_send.edit(content=msg_reply)
+                    print('\tINFO: '+msg_reply)
+            elif is_visible_xpath(5,'/html/body/div[1]/div[5]/div[2]/div[2]/div/div[1]/div[1]/div[3]/div[2]'):
                 msg_reply = 'Page loaded successfully. Processing image...'
                 await msg_send.edit(content=msg_reply)
                 print('\tINFO: '+msg_reply)
+            
 
             total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
             top_height = 0
