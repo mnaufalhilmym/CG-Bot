@@ -16,11 +16,11 @@ from mega import Mega
 description = (
 '''
 **TETITBbot Help**
-Revision: 26032021rev2
+Revision: 27032021rev1
 
 Usage:
-**!getcg**
-1. **!getcg [URL]**     Get chegg answer. Ex: *!getcg https://chegg.com/homewo...*
+**!c**
+1. **!c [URL]**     Get chegg answer. Ex: *!c https://chegg.com/homewo...*
 **!cfg**
 1. **!cfg display_scale view**     View current bot display scale
 2. **!cfg display_scale [INTEGER]**     Change bot display scale
@@ -44,8 +44,6 @@ mPass = os.getenv("mPass")
 # Fixed window size
 height = 720
 width = 1280
-scr_height = str(height)
-scr_width = str(width)
 display_scale = 100
 if os.path.isfile('data/config'):
     ds = open('data/config','r')
@@ -57,12 +55,24 @@ if os.path.isfile('data/config'):
 else:
     print('\tINFO: Using default display scale (100%)')
 
-print('\tINFO: Retrieving latest cache...')
 mega = Mega()
 m = mega.login(mUname,mPass)
-cache = 'data/botCache.pkl'
 
+
+is_active = False
+while not is_active:
+    m_active = m.find('nonactive',exclude_deleted=True)
+    if not m_active:
+        print('\tWARNING: Another bot is currently active. Please try again when no other bot is active!')
+    else:
+        m.rename(m_active, 'active')
+        print('\tINFO: Bot status changed to active.')
+        print('\tINFO: Starting bot...')
+        is_active = True
+
+cache = 'data/botCache.pkl'
 is_valid_cache = False
+print('\tINFO: Retrieving latest cache...')
 while not is_valid_cache:
     m_file = m.find('botCache.pkl',exclude_deleted=True)
     if not m_file:
@@ -167,7 +177,7 @@ options.add_experimental_option('prefs', prefs)
 options.add_argument('--kiosk-printing')
 
 # options.add_argument("--start-maximized")
-options.add_argument("window-size="+scr_width+','+scr_height)
+options.add_argument("window-size="+str(width)+','+str(height))
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 
@@ -182,6 +192,44 @@ driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.
 print('\tINFO: Use user agent: \n'+driver.execute_script("return navigator.userAgent;"))
 
 driver.set_page_load_timeout(30)
+
+
+# def signal_handler(sig, frame):
+#     print('\tINFO: Please wait while exiting bot...')
+#     is_active = True
+#     while is_active:
+#         m_active = m.find('active',exclude_deleted=True)
+#         m.rename(m_active, 'nonactive')
+#         m_active = m.find('active',exclude_deleted=True)
+#         if m_active:
+#             print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
+#         else:
+#             print('\tINFO: Success change bot status. Exiting bot...')
+#     driver.quit()
+#     time.sleep(1)
+#     sys.exit(0)
+
+# if platform.system() != 'Linux':
+#     signal.SIGHUP = 1
+
+# signal.signal(signal.SIGHUP, signal_handler)
+
+def exit_handler():
+    print('\tINFO: Please wait while exiting bot...')
+    is_active = True
+    while is_active:
+        m_active = m.find('active',exclude_deleted=True)
+        m.rename(m_active, 'nonactive')
+        m_active = m.find('active',exclude_deleted=True)
+        if m_active:
+            print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
+        else:
+            print('\tINFO: Success change bot status. Exiting bot...')
+            is_active = False
+    driver.quit()
+    time.sleep(1)
+
+atexit.register(exit_handler)
 
 
 print('\tINFO: Loading cache...')
@@ -215,6 +263,9 @@ elif os.path.isfile(cache):
     exit()
 
 else:
+    url = 'https://www.chegg.com'
+    driver.get(url)
+    time.sleep(random.uniform(3,6))
     url = 'https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F'
     connect = False
     while not connect:
@@ -284,23 +335,6 @@ else:
 
 # height = vw_height
 # width = vw_width - 20
-
-
-# def signal_handler(sig, frame):
-#     print('\tINFO: Ctrl+C pressed. Exiting bot...')
-#     driver.quit()
-#     time.sleep(2)
-#     sys.exit(0)
-
-# signal.signal(signal.SIGINT, signal_handler)
-
-def exit_handler():
-    print('\tINFO: Exiting bot...')
-    driver.quit()
-    time.sleep(1)
-    sys.exit(0)
-
-atexit.register(exit_handler)
 
 
 # Process
@@ -388,9 +422,9 @@ async def cfg(ctx, *arg):
         print('\t------DONE------')
 
 @bot.command()
-async def getcg(ctx, *arg):
+async def c(ctx, *arg):
     if not arg:
-        msg_reply = 'Try using a command. See *!getcg help*'
+        msg_reply = 'Try using a command. See *!c help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
         print('\tINFO: Finished processing request from '+ctx.author.mention)
@@ -399,7 +433,7 @@ async def getcg(ctx, *arg):
     elif 'help' == arg[0]:
         msg_reply = description
         await ctx.reply(msg_reply, mention_author=True)
-        print('\tINFO: Showing getcg help to user')
+        print('\tINFO: Showing c help to user')
         print('\tINFO: Finished processing request from '+ctx.author.mention)
         print('\t------DONE------')
 
@@ -540,8 +574,9 @@ async def getcg(ctx, *arg):
 
 
             driver.switch_to.default_content()
-
-            if is_visible_class(5,'chg-container-content'):
+            
+            # await asyncio.sleep(random.uniform(4,6))
+            if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section') or is_visible_xpath(5,'//*[@itemprop="headline"'):
                 msg_reply = 'Page loaded successfully. Processing image...'
                 await msg_send.edit(content=msg_reply)
                 print('\tINFO: '+msg_reply)
@@ -549,12 +584,22 @@ async def getcg(ctx, *arg):
             total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
             top_height = 0
 
+
+
+            head = 60.0
+            plus = 0
+            plus2 = 0
+            if is_visible_xpath(5,'//*[@id="solution-player-sdk"]/section/section/div[1]/section[1]/section'):
+                head = 113.0
+                plus = 16
+                plus2 = 12
+
             n = 1
             # browser_head = 80
-            chegg_head = float(display_scale/100.0)*60.0
+            chegg_head = float(display_scale/100.0)*head
             print('\tINFO: Using chegg_head: '+str(chegg_head))
             # minus = - (browser_head + chegg_head + 8)
-            minus = - 60
+            minus = - (head)
             print('\tINFO: Using minus: '+str(minus))
             width = driver.execute_script("return window.innerWidth")
             height = driver.execute_script("return window.innerHeight")
@@ -564,8 +609,10 @@ async def getcg(ctx, *arg):
                 filepath = 'data/cache/screenshot'+str(n)+'.png'
                 driver.save_screenshot(filepath)
 
-                if (top_height + height) < total_height + minus:
+                if (top_height + 2 * height) < total_height + minus:
                     top_height = top_height + height + minus
+                    if n == 1:
+                        top_height = top_height + plus
                 else:
                     break
 
@@ -574,17 +621,19 @@ async def getcg(ctx, *arg):
                 driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
 
 
-            images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n)]
+            images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n+1)]
 
             scrollbar_width = 17
             x = 1
             for im in images:
+                if x == n:
+                    chegg_head = chegg_head - float(display_scale/100.0)*plus2
                 im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
                 # im = im.crop((0,75,width,height))
                 im.save('data/cache/ans'+str(x)+'.png', quality=50)
                 x = x + 1
 
-            images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n)]
+            images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n+1)]
             widths, heights = zip(*(i.size for i in images))
             max_width = max(widths)
             total_height = sum(heights)
@@ -643,12 +692,11 @@ async def getcg(ctx, *arg):
                 print('\tWARNING: Failed to synchronize cache. Skipping...')
                 pass
                 
-            driver.get('https://www.google.com/')
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
 
     else:
-        msg_reply = 'Unsupported command. See *!getcg help*'
+        msg_reply = 'Unsupported command. See *!c help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
         print('\tINFO: Finished processing request from '+ctx.author.mention)
