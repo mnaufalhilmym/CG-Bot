@@ -247,7 +247,7 @@ def exit_handler():
         if m_active:
             print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
         else:
-            print('\tINFO: Successfully changed the bot status to nonactive. Exiting bot...')
+            print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
             is_active = False
     driver.quit()
 
