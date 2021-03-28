@@ -1,4 +1,4 @@
-import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob, winsound
+import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob
 from discord.ext import commands
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -160,7 +160,6 @@ def captcha_voice(captcha_text):
         return captcha_text
 
 def alert_captcha():
-    winsound(alert_freq, alert_duration)
     root = tk.Tk()
     label = tk.Label(
         text="Captcha detected.",
