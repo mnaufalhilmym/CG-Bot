@@ -17,7 +17,7 @@ import tkinter as tk
 description = (
 '''
 **TETITBbot Help**
-Revision: 28032021rev
+Revision: 29032021rev1
 
 Usage:
 **!c**
