@@ -250,7 +250,6 @@ def exit_handler():
             print('\tINFO: Successfully changed the bot status to nonactive. Exiting bot...')
             is_active = False
     driver.quit()
-    time.sleep(1)
 
 atexit.register(exit_handler)
 
