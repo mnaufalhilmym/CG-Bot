@@ -60,16 +60,16 @@ mega = Mega()
 m = mega.login(mUname,mPass)
 
 
-is_active = False
-while not is_active:
-    m_active = m.find('nonactive',exclude_deleted=True)
-    if not m_active:
-        print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
-    else:
-        m.rename(m_active, 'active')
-        print('\tINFO: Bot status changed to active.')
-        print('\tINFO: Starting bot...')
-        is_active = True
+# is_active = False
+# while not is_active:
+#     m_active = m.find('nonactive',exclude_deleted=True)
+#     if not m_active:
+#         print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
+#     else:
+#         m.rename(m_active, 'active')
+#         print('\tINFO: Bot status changed to active.')
+#         print('\tINFO: Starting bot...')
+#         is_active = True
 
 cache = 'data/botCache.pkl'
 is_valid_cache = False
@@ -237,16 +237,16 @@ driver.set_page_load_timeout(30)
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
-    is_active = True
-    while is_active:
-        m_active = m.find('active',exclude_deleted=True)
-        m.rename(m_active, 'nonactive')
-        m_active = m.find('active',exclude_deleted=True)
-        if m_active:
-            print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
-        else:
-            print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
-            is_active = False
+    # is_active = True
+    # while is_active:
+    #     m_active = m.find('active',exclude_deleted=True)
+    #     m.rename(m_active, 'nonactive')
+    #     m_active = m.find('active',exclude_deleted=True)
+    #     if m_active:
+    #         print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
+    #     else:
+    #         print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
+    #         is_active = False
     driver.quit()
 
 atexit.register(exit_handler)
