@@ -211,7 +211,7 @@ driver = webdriver.Chrome(options=options,desired_capabilities=capa)
 wait = WebDriverWait(driver, 30)
 
 driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
+driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36'})
 print('\tINFO: Use user agent: \n'+driver.execute_script("return navigator.userAgent;"))
 
 driver.set_page_load_timeout(30)
