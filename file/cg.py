@@ -25,6 +25,7 @@ Usage:
 **!cfg**
 1. **!cfg display_scale view**     View current bot display scale
 2. **!cfg display_scale [INTEGER]**     Change bot display scale
+3. **!cfg shutdown**     Shutdown bot server
 
 *Use this bot at your own risk*
 ''' )
