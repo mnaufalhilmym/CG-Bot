@@ -1,4 +1,4 @@
-import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob
+import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob, winsound
 from discord.ext import commands
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,6 +11,7 @@ from PIL import Image
 import speech_recognition as sr
 from pydub import AudioSegment
 from mega import Mega
+import tkinter as tk
 
 
 description = (
@@ -40,6 +41,8 @@ cgUname = os.getenv("cgUname")
 cgPass = os.getenv("cgPass")
 mUname = os.getenv("mUname")
 mPass = os.getenv("mPass")
+alert_duration = 1500 #milliseconds
+alert_freq = 1000 #Hz
 
 # Fixed window size
 height = 720
@@ -155,6 +158,27 @@ def captcha_voice(captcha_text):
         os.remove('data/audio.wav')
 
         return captcha_text
+
+def alert_captcha():
+    winsound(alert_freq, alert_duration)
+    root = tk.Tk()
+    label = tk.Label(
+        text="Captcha detected.",
+        fg="black",
+        bg="white",
+        width=30,
+        height=10
+    )
+    label.pack()
+    root.attributes("-topmost", True)
+    w = root.winfo_reqwidth()
+    h = root.winfo_reqheight()
+    ws = root.winfo_screenwidth()
+    hs = root.winfo_screenheight()
+    x = (ws/2) - (w/2)
+    y = (hs/2) - (h/2)
+    root.geometry('+%d+%d' % (x, y)) ## this part allows you to only change the location
+    root.mainloop()
 
 
 # Starting
@@ -308,7 +332,8 @@ else:
                 print('\t\tReason:')
                 if 'denied' in driver.title:
                     print('\t\tCaptcha detected. Need to be resolved manually.')
-                    
+                    alert_captcha()
+
                     captcha_text = '0'
                     while captcha_text == '0' and 'denied' in driver.title:
                         captcha_text = captcha_voice(captcha_text)
@@ -477,7 +502,8 @@ async def c(ctx, *arg):
                         msg_reply = 'Captcha detected. Please wait while resolving it...'
                         await msg_send.edit(content=msg_reply)
                         print('\t\tCaptcha detected. Need to be resolved manually.')
-                        
+                        alert_captcha()
+
                         captcha_text = '0'
                         while captcha_text == '0' and 'denied' in driver.title:
                             captcha_text = captcha_voice(captcha_text)
@@ -516,6 +542,7 @@ async def c(ctx, *arg):
                 msg_reply = 'Captcha detected. Please wait while resolving it...'
                 await msg_send.edit(content=msg_reply)
                 print('\t\tCaptcha detected. Need to be resolved manually.')
+                alert_captcha()
                 
                 captcha_text = '0'
                 while captcha_text == '0' and 'denied' in driver.title:
