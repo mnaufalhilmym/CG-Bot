@@ -41,8 +41,6 @@ cgUname = os.getenv("cgUname")
 cgPass = os.getenv("cgPass")
 mUname = os.getenv("mUname")
 mPass = os.getenv("mPass")
-alert_duration = 1500 #milliseconds
-alert_freq = 1000 #Hz
 
 # Fixed window size
 height = 720
