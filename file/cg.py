@@ -60,16 +60,16 @@ mega = Mega()
 m = mega.login(mUname,mPass)
 
 
-# is_active = False
-# while not is_active:
-#     m_active = m.find('nonactive',exclude_deleted=True)
-#     if not m_active:
-#         print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
-#     else:
-#         m.rename(m_active, 'active')
-#         print('\tINFO: Bot status changed to active.')
-#         print('\tINFO: Starting bot...')
-#         is_active = True
+is_active = False
+while not is_active:
+    m_active = m.find('nonactive',exclude_deleted=True)
+    if not m_active:
+        print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
+    else:
+        m.rename(m_active, 'active')
+        print('\tINFO: Bot status changed to active.')
+        print('\tINFO: Starting bot...')
+        is_active = True
 
 cache = 'data/botCache.pkl'
 is_valid_cache = False
@@ -167,6 +167,7 @@ def alert_captcha():
         height=10
     )
     label.pack()
+    # messagebox.showinfo("showinfo", "Information")
     root.attributes("-topmost", True)
     w = root.winfo_reqwidth()
     h = root.winfo_reqheight()
@@ -182,20 +183,20 @@ def alert_captcha():
 print('\tINFO: Starting web browser...')
 options = webdriver.ChromeOptions()
 
-options.add_argument("download.default_directory=C:/Users/Acer/Labs/cheggbot/CG-Bot/data")
-settings = {
-       "recentDestinations": [{
-            "id": "Save as PDF",
-            "origin": "local",
-            "account": "",
-        }],
-        "selectedDestinationId": "Save as PDF",
-        "version": 2
-    }
-prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings),
-        'savefile.default_directory': 'C:/Users/Acer/Labs/cheggbot/CG-Bot/data/cache'}
-options.add_experimental_option('prefs', prefs)
-options.add_argument('--kiosk-printing')
+# options.add_argument("download.default_directory=C:/Users/Acer/Labs/cheggbot/CG-Bot/data")
+# settings = {
+#        "recentDestinations": [{
+#             "id": "Save as PDF",
+#             "origin": "local",
+#             "account": "",
+#         }],
+#         "selectedDestinationId": "Save as PDF",
+#         "version": 2
+#     }
+# prefs = {'printing.print_preview_sticky_settings.appState': json.dumps(settings),
+#         'savefile.default_directory': 'C:/Users/Acer/Labs/cheggbot/CG-Bot/data/cache'}
+# options.add_experimental_option('prefs', prefs)
+# options.add_argument('--kiosk-printing')
 
 # options.add_argument("--start-maximized")
 options.add_argument("window-size="+str(width)+','+str(height))
@@ -237,16 +238,16 @@ driver.set_page_load_timeout(30)
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
-    # is_active = True
-    # while is_active:
-    #     m_active = m.find('active',exclude_deleted=True)
-    #     m.rename(m_active, 'nonactive')
-    #     m_active = m.find('active',exclude_deleted=True)
-    #     if m_active:
-    #         print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
-    #     else:
-    #         print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
-    #         is_active = False
+    is_active = True
+    while is_active:
+        m_active = m.find('active',exclude_deleted=True)
+        m.rename(m_active, 'nonactive')
+        m_active = m.find('active',exclude_deleted=True)
+        if m_active:
+            print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
+        else:
+            print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
+            is_active = False
     driver.quit()
 
 atexit.register(exit_handler)
@@ -434,6 +435,9 @@ async def cfg(ctx, *arg):
 
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
+
+    elif 'shutdown' == arg[0]:
+        sys.exit()
 
     else:
         msg_reply = 'Unsupported command. See *!cfg help*'
