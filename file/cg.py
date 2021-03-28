@@ -254,101 +254,103 @@ def exit_handler():
 atexit.register(exit_handler)
 
 
+# if os.path.isfile(cache) and os.path.getsize(cache) > 0:
+url = 'https://www.google.com'
+connect = False
+while not connect:
+    try:
+        driver.get(url)
+        print('\tINFO: Accessing URL:\n'+url)
+        time.sleep(random.uniform(2,4))
+
+        if 'Google' in driver.title:
+            connect = True
+            print('\tINFO: Successfully accessed URL:\n'+url)
+
+    except Exception as e:
+        print('\tINFO: Get Exception while accessing URL:\n'+url)
+        continue
+
 print('\tINFO: Loading cache...')
 
-if os.path.isfile(cache) and os.path.getsize(cache) > 0:
-    url = 'https://www.google.com'
-    connect = False
-    while not connect:
-        try:
-            driver.get(url)
-            print('\tINFO: Accessing URL:\n'+url)
-            time.sleep(random.uniform(2,4))
+cookies = pickle.load(open(cache, "rb"))
+for cookie in cookies:
+    driver.add_cookie(cookie)
 
-            if 'Google' in driver.title:
-                connect = True
-                print('\tINFO: Successfully accessed URL:\n'+url)
-
-        except Exception as e:
-            print('\tINFO: Get Exception while accessing URL:\n'+url)
-            continue
-    
-    cookies = pickle.load(open(cache, "rb"))
-    for cookie in cookies:
-        driver.add_cookie(cookie)
+if os.path.isfile(cache):
     print('\tINFO: Cache loaded')
 
-elif os.path.isfile(cache):
-    print('\tINFO: Invalid cache. Please restart this bot!')
-    time.sleep(3)
-    driver.quit()
-    exit()
+# elif os.path.isfile(cache):
+#     print('\tINFO: Invalid cache. Please restart this bot!')
+#     time.sleep(3)
+#     driver.quit()
+#     exit()
 
-else:
-    url = 'https://www.chegg.com'
-    driver.get(url)
-    time.sleep(random.uniform(3,6))
-    url = 'https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F'
-    connect = False
-    while not connect:
-        try:
-            if url != driver.current_url and not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
-                driver.get(url)
-                print('\tINFO: Accessing URL:\n'+url)
-                time.sleep(random.uniform(4,6))
+# else:
+#     url = 'https://www.chegg.com'
+#     driver.get(url)
+#     time.sleep(random.uniform(3,6))
+#     url = 'https://www.chegg.com/auth?action=login&redirect=https%3A%2F%2Fwww.chegg.com%2F'
+#     connect = False
+#     while not connect:
+#         try:
+#             if url != driver.current_url and not is_visible_xpath(5,'//*[@id="eggshell-5"]/img'):
+#                 driver.get(url)
+#                 print('\tINFO: Accessing URL:\n'+url)
+#                 time.sleep(random.uniform(4,6))
 
-            xpath = '//*[@id="emailForSignIn"]'
-            if is_visible_xpath(5,xpath):
-                time.sleep(random.uniform(2,6))
-                driver.find_element_by_xpath(xpath).send_keys(cgUname)
-                print('\tINFO: Email '+cgUname+' Filled')
-                time.sleep(random.uniform(4,6))
+#             xpath = '//*[@id="emailForSignIn"]'
+#             if is_visible_xpath(5,xpath):
+#                 time.sleep(random.uniform(2,6))
+#                 driver.find_element_by_xpath(xpath).send_keys(cgUname)
+#                 print('\tINFO: Email '+cgUname+' Filled')
+#                 time.sleep(random.uniform(4,6))
             
-                xpath = '//*[@id="passwordForSignIn"]'
-                if is_visible_xpath(5,xpath):
-                    time.sleep(random.uniform(2,6))
-                    driver.find_element_by_xpath(xpath).send_keys(cgPass)
-                    print('\tINFO: Password '+cgPass+' Filled')
-                    time.sleep(random.uniform(4,6))
+#                 xpath = '//*[@id="passwordForSignIn"]'
+#                 if is_visible_xpath(5,xpath):
+#                     time.sleep(random.uniform(2,6))
+#                     driver.find_element_by_xpath(xpath).send_keys(cgPass)
+#                     print('\tINFO: Password '+cgPass+' Filled')
+#                     time.sleep(random.uniform(4,6))
 
-                    xpath = '//button[@type="submit"]'
-                    if is_visible_xpath(5,xpath):
-                        time.sleep(random.uniform(2,6))
-                        driver.find_element_by_xpath(xpath).click()
-                        print('\tINFO: Login Button Clicked')
+#                     xpath = '//button[@type="submit"]'
+#                     if is_visible_xpath(5,xpath):
+#                         time.sleep(random.uniform(2,6))
+#                         driver.find_element_by_xpath(xpath).click()
+#                         print('\tINFO: Login Button Clicked')
 
-            if is_visible_xpath(30,'//*[@id="eggshell-5"]/img'):
-                print('\tINFO: Login Successful')
-                time.sleep(random.uniform(1,2))
-                pickle.dump(driver.get_cookies() , open(cache,"wb"))
-                print('\tINFO: Cache saved')
+#             if is_visible_xpath(30,'//*[@id="eggshell-5"]/img'):
+#                 print('\tINFO: Login Successful')
+#                 time.sleep(random.uniform(1,2))
+#                 pickle.dump(driver.get_cookies() , open(cache,"wb"))
+#                 print('\tINFO: Cache saved')
 
-                connect = True
+#                 connect = True
             
-            else:
-                print('\tERROR: Login Failed')
-                print('\t\tReason:')
-                if 'denied' in driver.title:
-                    print('\t\tCaptcha detected. Need to be resolved manually.')
-                    alert_captcha()
+#             else:
+#                 print('\tERROR: Login Failed')
+#                 print('\t\tReason:')
+#                 if 'denied' in driver.title:
+#                     print('\t\tCaptcha detected. Need to be resolved manually.')
+#                     alert_captcha()
 
-                    captcha_text = '0'
-                    while captcha_text == '0' and 'denied' in driver.title:
-                        captcha_text = captcha_voice(captcha_text)
+#                     captcha_text = '0'
+#                     while captcha_text == '0' and 'denied' in driver.title:
+#                         captcha_text = captcha_voice(captcha_text)
 
-                    while 'denied' in driver.title:
-                        continue
+#                     while 'denied' in driver.title:
+#                         continue
 
-                    if 'denied' not in driver.title:
-                        print('\t\tCaptcha resolved. Loading webpage...')
+#                     if 'denied' not in driver.title:
+#                         print('\t\tCaptcha resolved. Loading webpage...')
 
-                else:
-                    print('\t\tUnknown reason')
-                    input('\t\tEnter to continue')
+#                 else:
+#                     print('\t\tUnknown reason')
+#                     input('\t\tEnter to continue')
 
-        except Exception as e:
-            print('\tINFO: Get Exception while loging in URL:\n'+url)
-            continue
+#         except Exception as e:
+#             print('\tINFO: Get Exception while loging in URL:\n'+url)
+#             continue
 
 # filepath = 'data/cache/initial.png'
 # driver.save_screenshot(filepath)
