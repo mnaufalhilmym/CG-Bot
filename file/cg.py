@@ -239,6 +239,7 @@ driver.set_page_load_timeout(30)
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
+    pickle.dump(driver.get_cookies() , open(cache,"wb"))
     is_active = True
     while is_active:
         m_active = m.find('active',exclude_deleted=True)
