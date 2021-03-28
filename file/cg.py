@@ -239,7 +239,30 @@ driver.set_page_load_timeout(30)
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
+    print('\tINFO: Saving cache...')
     pickle.dump(driver.get_cookies() , open(cache,"wb"))
+    try:
+        try:
+            m_file = m.find('botCache.pkl.backup')
+            m.rename(m_file, 'botCache.pkl.backup.backup')
+        except Exception as e:
+            pass
+        m_file = m.find('botCache.pkl')
+        m.rename(m_file, 'botCache.pkl.backup')
+    except Exception as e:
+        print('\tWARNING: Failed to rename cache. Skipping...')
+        pass
+
+    try:
+        m.upload('data/botCache.pkl')
+        if m.find('botCache.pkl'):
+            print('\tINFO: Cache synchronized')
+        else:
+            print('\tWARNING: Failed to synchronize cache. Skipping...')
+    except Exception as e:
+        print('\tWARNING: Failed to synchronize cache. Skipping...')
+        pass
+        
     is_active = True
     while is_active:
         m_active = m.find('active',exclude_deleted=True)
@@ -733,6 +756,7 @@ async def c(ctx, *arg):
                 
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
+
 
     else:
         msg_reply = 'Unsupported command. See *!c help*'
