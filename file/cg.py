@@ -437,6 +437,9 @@ async def cfg(ctx, *arg):
             print('\t------DONE------')
 
     elif 'shutdown' == arg[0]:
+        msg_reply = 'Shutting down the bot...'
+        await ctx.reply(msg_reply, mention_author=True)
+        print('\tINFO: '+msg_reply)
         sys.exit()
 
     else:
