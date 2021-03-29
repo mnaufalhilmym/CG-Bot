@@ -511,7 +511,13 @@ async def c(ctx, *arg):
         print('\t------DONE------')
 
 
+loop = asyncio.get_event_loop()
+loop.create_task(browser_timeout())
+
 bot.loop.create_task(url_task())
-bot.loop.create_task(browser_timeout())
+
+loop.run_forever()
+
+
 
 bot.run(botToken)
