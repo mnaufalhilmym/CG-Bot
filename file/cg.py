@@ -17,7 +17,7 @@ import tkinter as tk
 description = (
 '''
 **TETITBbot Help**
-Revision: 29032021rev3
+Revision: 29032021rev4
 
 Usage:
 **!c**
@@ -162,6 +162,8 @@ print('\tINFO: Use user agent: \n'+driver.execute_script("return navigator.userA
 
 driver.set_page_load_timeout(30)
 
+driver.get('https://google.com')
+
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
@@ -280,7 +282,7 @@ stx = None
 urls = asyncio.Queue()
 authors = asyncio.Queue()
 sender = None
-timer = None
+timer = time.time()
 next_url = asyncio.Event()
 
 async def send_result(msg):    
@@ -289,180 +291,123 @@ async def send_result(msg):
     print('\tINFO:'+msg_reply)
 
     url = 'https://www.' + msg
-    connect = False
-    bot_state = False
-    while not connect:
-        try:
-            if url != driver.current_url:
-                driver.get(url)
-                await asyncio.sleep(random.uniform(2,3))
+    try:
+        if url != driver.current_url:
+            driver.get(url)
+            await asyncio.sleep(random.uniform(4,10))
 
-            if is_visible_xpath(5,"//div[@class='chg-container-content']"):
-                connect = True
-
-            else:
-                print('\tERROR: Failed accessing URL:\n'+url)
-                print('\t\tReason:')
-
-                if 'denied' in driver.title:
-                    msg_reply = 'Captcha detected. Please wait while resolving it...'
-                    await msg_send.edit(content=sender+'\n'+msg_reply)
-                    print('\t\tCaptcha detected. Need to be resolved manually.')
-                    await alert_captcha()
-
-                    while 'denied' in driver.title:
-                        captcha_voice()
-                    
-                    if 'denied' not in driver.title:
-                        msg_reply = 'Captcha resolved. Loading webpage...'
-                        await msg_send.edit(content=sender+'\n'+msg_reply)
-                        print('\t\t'+msg_reply)
-
-                elif driver.title == 'Page Not Found':
-                    msg_reply = 'Page not found. Check your URL!'
-                    await msg_send.edit(content=sender+'\n'+msg_reply)
-                    print('\t\tPage not found at URL:\n'+url)
-                    break
-
-                else:
-                    print('\t\tUnknown reason')
-                    input('\t\tEnter to continue')
-
-        except Exception as e:
-            msg_reply = 'Get Exception while accessing URL. Try again or contact dev!'
-            await msg_send.edit(content=sender+'\n'+msg_reply)
-            print('\tINFO: Get Exception while accessing URL:\n'+url)
-            print('\tEXCEPTION: '+str(e))
-            break
-
-    if connect:
-        await asyncio.sleep(random.uniform(1,2))
-
-        if 'denied' in driver.title:
-
-            msg_reply = 'Captcha detected. Please wait while resolving it...'
-            await msg_send.edit(content=sender+'\n'+msg_reply)
-            print('\t\tCaptcha detected. Need to be resolved manually.')
-            await alert_captcha()
-            
-            captcha_text = '0'
-            while captcha_text == '0' and 'denied' in driver.title:
-                captcha_text = captcha_voice(captcha_text)
+            if 'denied' in driver.title:
+                msg_reply = 'Captcha detected. Please wait while resolving it...'
+                await msg_send.edit(content=sender+'\n'+msg_reply)
+                print('\t\tCaptcha detected. Need to be resolved manually.')
+                await alert_captcha()
 
             while 'denied' in driver.title:
-                continue
-
+                captcha_voice()
+            
             if 'denied' not in driver.title:
                 msg_reply = 'Captcha resolved. Loading webpage...'
                 await msg_send.edit(content=sender+'\n'+msg_reply)
                 print('\t\t'+msg_reply)
 
-        
-        if is_visible_xpath(5, '//*[@id="solution-player-sdk"]'):
-            await asyncio.sleep(random.uniform(3,5))
-            msg_reply = 'Page loaded successfully. Processing image...'
-            await msg_send.edit(content=sender+'\n'+msg_reply)
-            print('\tINFO:'+msg_reply)
-        elif is_visible_xpath(5,'//*[@itemprop="headline"]'):
-            msg_reply = 'Page loaded successfully. Processing image...'
-            await msg_send.edit(content=sender+'\n'+msg_reply)
-            print('\tINFO: '+msg_reply)
-        
+            elif driver.title == 'Page Not Found':
+                msg_reply = 'Page not found. Check your URL!'
+                await msg_send.edit(content=sender+'\n'+msg_reply)
+                print('\t\tPage not found at URL:\n'+url)
 
-        total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
-        top_height = 0
-        head = 60.0
-        plus = 0
-        plus2 = 0
-        if is_visible_xpath(5,'//*[@id="solution-player-sdk"]'):
-            head = 113.0
-            plus = 14
-            plus2 = 12
-
-        n = 1
-        chegg_head = float(display_scale/100.0)*head
-        print('\tINFO: Using chegg_head: '+str(chegg_head))
-        minus = - (head)
-        print('\tINFO: Using minus: '+str(minus))
-        width = driver.execute_script("return window.innerWidth")
-        height = driver.execute_script("return window.innerHeight")
-        
-        driver.execute_script("window.scrollTo(0, 0)")
-        while top_height < total_height:
-            filepath = 'data/cache/screenshot'+str(n)+'.png'
-            driver.save_screenshot(filepath)
-
-            if (top_height + 2 * height) < total_height + minus:
-                top_height = top_height + height + minus
-                if n == 1:
-                    top_height = top_height + plus
-            else:
-                break
-
-            n = n + 1
-
-            driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
-
-
-        images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n+1)]
-
-        scrollbar_width = 17
-        x = 1
-        for im in images:
-            if x == n:
-                chegg_head = chegg_head - float(display_scale/100.0)*plus2
-            im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
-            im.save('data/cache/ans'+str(x)+'.png', quality=50)
-            x = x + 1
-
-        images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n+1)]
-        widths, heights = zip(*(i.size for i in images))
-        max_width = max(widths)
-        total_height = sum(heights)
-
-        new_im = Image.new('RGB', (max_width, total_height))
-
-        y_offset = 0
-        n = 0
-        for im in images:
-            new_im.paste(im, (0,y_offset))
-            y_offset += im.size[1]
-
-        new_im.save('data/cache/ans.png', quality=50)
-
-        images = None
-
-        msg_reply = 'Sending image...'
+    except Exception as e:
+        msg_reply = 'Get Exception while accessing URL. Try again or contact dev!'
         await msg_send.edit(content=sender+'\n'+msg_reply)
-        print('\tINFO: '+msg_reply)
+        print('\tINFO: Get Exception while accessing URL:\n'+url)
+        print('\tEXCEPTION: '+str(e))
+  
+    total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
+    top_height = 0
+    head = 60.0
+    plus = 0
+    plus2 = 0
+    if 'Solved:' in driver.title:
+        head = 113.0
+        plus = 14
+        plus2 = 12
 
-        msg_reply = 'Done! :)'
-        await stx.reply(sender+"\nHere is the result ", file=discord.File('data/cache/ans.png'))
-        await msg_send.edit(content=sender+'\n'+msg_reply)
-        print('\tINFO: '+msg_reply)
+    n = 1
+    chegg_head = float(display_scale/100.0)*head
+    print('\tINFO: Using chegg_head: '+str(chegg_head))
+    minus = - (head)
+    print('\tINFO: Using minus: '+str(minus))
+    width = driver.execute_script("return window.innerWidth")
+    height = driver.execute_script("return window.innerHeight")
+    
+    driver.execute_script("window.scrollTo(0, 0)")
+    while top_height < total_height:
+        filepath = 'data/cache/screenshot'+str(n)+'.png'
+        driver.save_screenshot(filepath)
 
-        next_url.set()
+        if (top_height + 2 * height) < total_height + minus:
+            top_height = top_height + height + minus
+            if n == 1:
+                top_height = top_height + plus
+        else:
+            break
 
-        global timer
-        timer = time.time()
+        n = n + 1
 
-        print('\tINFO: Finished processing request from '+sender+' at '+timer)
-        print('\t------DONE------')
+        driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
 
 
-        await asyncio.sleep(15)
-        await msg_send.delete()
+    images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n+1)]
 
-async def browser_timeout():
+    scrollbar_width = 17
+    x = 1
+    for im in images:
+        if x == n:
+            chegg_head = chegg_head - float(display_scale/100.0)*plus2
+        im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
+        im.save('data/cache/ans'+str(x)+'.png', quality=50)
+        x = x + 1
+
+    images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n+1)]
+    widths, heights = zip(*(i.size for i in images))
+    max_width = max(widths)
+    total_height = sum(heights)
+
+    new_im = Image.new('RGB', (max_width, total_height))
+
+    y_offset = 0
+    n = 0
+    for im in images:
+        new_im.paste(im, (0,y_offset))
+        y_offset += im.size[1]
+
+    new_im.save('data/cache/ans.png', quality=50)
+
+    images = None
+
+    msg_reply = 'Sending image...'
+    await msg_send.edit(content=sender+'\n'+msg_reply)
+    print('\tINFO: '+msg_reply)
+
+    msg_reply = 'Done! :)'
+    await stx.reply(sender+"\nHere is the result ", file=discord.File('data/cache/ans.png'))
+    await msg_send.edit(content=sender+'\n'+msg_reply)
+    print('\tINFO: '+msg_reply)
+
+    next_url.set()
+
     global timer
+    timer = time.time()
 
-    while True:
-        if time.time() - timer > 180:
-            driver.get('https://www.google.com')
-            timer = time.time()
+    print('\tINFO: Finished processing request from '+sender+' at '+str(timer))
+    print('\t------DONE------')
+
+
+    await asyncio.sleep(15)
+    await msg_send.delete()
+
 
 async def url_task():
-    global sender
+    global sender, timer
     await bot.wait_until_ready()
 
     while True:
@@ -471,6 +416,10 @@ async def url_task():
         sender = await authors.get()
         await send_result(url)
         await next_url.wait()
+
+        if time.time() - timer > 180 and 'https://www.google.com' != driver.current_url:
+            driver.get('https://www.google.com')
+            timer = time.time()
 
 
 @bot.command()
@@ -511,13 +460,6 @@ async def c(ctx, *arg):
         print('\t------DONE------')
 
 
-loop = asyncio.get_event_loop()
-loop.create_task(browser_timeout())
-
 bot.loop.create_task(url_task())
-
-loop.run_forever()
-
-
 
 bot.run(botToken)
