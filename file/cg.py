@@ -1,4 +1,4 @@
-import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob
+import discord, pickle, random, time, os, dotenv, img2pdf, json, asyncio, atexit, sys, glob, winsound
 from discord.ext import commands
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -12,6 +12,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from mega import Mega
 import tkinter as tk
+from threading import Thread
 
 
 description = (
@@ -41,6 +42,8 @@ cgUname = os.getenv("cgUname")
 cgPass = os.getenv("cgPass")
 mUname = os.getenv("mUname")
 mPass = os.getenv("mPass")
+alert_duration = 1500 # milliseconds
+alert_freq = 1000 # Hz
 # Fixed window size
 height = 720
 width = 1280
@@ -118,32 +121,8 @@ def captcha_voice():
         os.remove('C:/Users/Public/audio.mp3')
         os.remove('C:/Users/Public/audio.wav')
 
-async def alert_captcha():
-    try:
-        root = tk.Tk()
-        label = tk.Label(
-            text="Captcha detected.",
-            fg="black",
-            bg="white",
-            width=30,
-            height=10
-        )
-        label.pack()
-        root.attributes("-topmost", True)
-        w = root.winfo_reqwidth()
-        h = root.winfo_reqheight()
-        ws = root.winfo_screenwidth()
-        hs = root.winfo_screenheight()
-        x = (ws/2) - (w/2)
-        y = (hs/2) - (h/2)
-        root.geometry('+%d+%d' % (x, y)) ## this part allows you to only change the location
-        root.mainloop()
-    except Exception as e:
-        pass
-
 
 # Starting
-print('\tINFO: Starting web browser...')
 options = webdriver.ChromeOptions()
 
 options.add_argument("--user-data-dir=data/chrome-data")
@@ -161,8 +140,6 @@ driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.
 print('\tINFO: Use user agent: \n'+driver.execute_script("return navigator.userAgent;"))
 
 driver.set_page_load_timeout(30)
-
-driver.get('https://google.com')
 
 
 def exit_handler():
@@ -202,6 +179,8 @@ async def cmd(ctx):
     print('\tINFO: Finished processing request from '+ctx.author.mention)
     print('\t------DONE------')
 
+
+run_timer = True
 
 @bot.command()
 async def cfg(ctx, *arg):
@@ -269,6 +248,23 @@ async def cfg(ctx, *arg):
         print('\tINFO: '+msg_reply)
         sys.exit()
 
+    elif 'timer' == arg[0]:
+        global run_timer
+        if 'true' == arg[1]:
+            run_timer = True
+            msg_reply = 'Timer enabled'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+        elif 'false' == arg[1]:
+            run_timer = False
+            msg_reply = 'Timer disabled'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+        else:
+            msg_reply = 'Wrong parameter!'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
     else:
         msg_reply = 'Unsupported command. See *!cfg help*'
         await ctx.reply(msg_reply, mention_author=True)
@@ -285,7 +281,10 @@ sender = None
 timer = time.time()
 next_url = asyncio.Event()
 
-async def send_result(msg):    
+async def send_result(msg):
+    global timer
+    timer = time.time()
+
     msg_reply = 'Processing URL... \nhttps://www.'+msg
     msg_send = await stx.reply(sender+'\n'+msg_reply)
     print('\tINFO:'+msg_reply)
@@ -300,17 +299,17 @@ async def send_result(msg):
                 msg_reply = 'Captcha detected. Please wait while resolving it...'
                 await msg_send.edit(content=sender+'\n'+msg_reply)
                 print('\t\tCaptcha detected. Need to be resolved manually.')
-                await alert_captcha()
 
             while 'denied' in driver.title:
                 captcha_voice()
+                winsound.Beep(alert_freq,alert_duration)
             
-            if 'denied' not in driver.title:
-                msg_reply = 'Captcha resolved. Loading webpage...'
-                await msg_send.edit(content=sender+'\n'+msg_reply)
-                print('\t\t'+msg_reply)
+                if 'denied' not in driver.title:
+                    msg_reply = 'Captcha resolved. Loading webpage...'
+                    await msg_send.edit(content=sender+'\n'+msg_reply)
+                    print('\t\t'+msg_reply)
 
-            elif driver.title == 'Page Not Found':
+            if driver.title == 'Page Not Found':
                 msg_reply = 'Page not found. Check your URL!'
                 await msg_send.edit(content=sender+'\n'+msg_reply)
                 print('\t\tPage not found at URL:\n'+url)
@@ -339,6 +338,10 @@ async def send_result(msg):
     width = driver.execute_script("return window.innerWidth")
     height = driver.execute_script("return window.innerHeight")
     
+    msg_reply = 'Processing image...'
+    await msg_send.edit(content=sender+'\n'+msg_reply)
+    print('\tINFO: '+msg_reply)
+
     driver.execute_script("window.scrollTo(0, 0)")
     while top_height < total_height:
         filepath = 'data/cache/screenshot'+str(n)+'.png'
@@ -350,9 +353,9 @@ async def send_result(msg):
                 top_height = top_height + plus
         else:
             break
-
+            
         n = n + 1
-
+        await asyncio.sleep(random.random())
         driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
 
 
@@ -393,9 +396,11 @@ async def send_result(msg):
     await msg_send.edit(content=sender+'\n'+msg_reply)
     print('\tINFO: '+msg_reply)
 
+
+    driver.execute_script('window.scrollTo(0,'+str(random.randint(0,total_height-height))+')')
+
     next_url.set()
 
-    global timer
     timer = time.time()
 
     print('\tINFO: Finished processing request from '+sender+' at '+str(timer))
@@ -417,14 +422,10 @@ async def url_task():
         await send_result(url)
         await next_url.wait()
 
-        if time.time() - timer > 180 and 'https://www.google.com' != driver.current_url:
-            driver.get('https://www.google.com')
-            timer = time.time()
-
 
 @bot.command()
 async def c(ctx, *arg):
-    global stx
+    global stx, timer
     stx = ctx
 
     if not arg:
@@ -442,6 +443,7 @@ async def c(ctx, *arg):
         print('\t------DONE------')
 
     elif 'chegg.com' in arg[0]:
+        timer = time.time()
         msg = arg[0]
         msg = msg[msg.find('chegg.com'):]
         await urls.put(msg)
@@ -460,6 +462,19 @@ async def c(ctx, *arg):
         print('\t------DONE------')
 
 
-bot.loop.create_task(url_task())
 
+def redirect():
+    global timer, run_timer
+    while True:
+        time.sleep(60)
+        if ((time.time() - timer > random.randint(150,250)) and ('google.com' not in driver.current_url)) and (run_timer == True):
+            driver.get('https://www.google.com')
+            timer = time.time()
+
+background_thread = Thread(target=redirect)
+background_thread.daemon = True
+background_thread.start()
+
+
+bot.loop.create_task(url_task())
 bot.run(botToken)
