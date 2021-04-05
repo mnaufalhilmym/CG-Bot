@@ -42,6 +42,8 @@ cgUname = os.getenv("cgUname")
 cgPass = os.getenv("cgPass")
 mUname = os.getenv("mUname")
 mPass = os.getenv("mPass")
+host = '101.255.132.115'
+port = '4145'
 alert_duration = 1500 # milliseconds
 alert_freq = 1000 # Hz
 # Fixed window size
@@ -129,6 +131,7 @@ options.add_argument("--user-data-dir=data/chrome-data")
 options.add_argument("window-size="+str(width)+','+str(height))
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
+options.add_argument("--proxy-server=socks4://" + host + ":" + port);
 
 capa = DesiredCapabilities.CHROME
 capa["pageLoadStrategy"] = "none"
@@ -266,7 +269,7 @@ async def cfg(ctx, *arg):
             print('\tINFO: '+msg_reply)
 
     else:
-        msg_reply = 'Unsupported command. See *!cfg help*'
+        msg_reply = 'Invalid argument. See *!cfg help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
         print('\tINFO: Finished processing request from '+ctx.author.mention)
@@ -308,6 +311,7 @@ async def send_result(msg):
                     msg_reply = 'Captcha resolved. Loading webpage...'
                     await msg_send.edit(content=sender+'\n'+msg_reply)
                     print('\t\t'+msg_reply)
+                    await asyncio.sleep(random.uniform(3,5))
 
             if driver.title == 'Page Not Found':
                 msg_reply = 'Page not found. Check your URL!'
@@ -455,7 +459,7 @@ async def c(ctx, *arg):
         await msg_send.delete()
 
     else:
-        msg_reply = 'Unsupported command. See *!c help*'
+        msg_reply = 'Invalid argument. See *!c help*'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
         print('\tINFO: Finished processing request from '+ctx.author.mention)
