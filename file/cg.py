@@ -18,17 +18,7 @@ from threading import Thread
 description = (
 '''
 **TETITBbot Help**
-Revision: 29032021rev4
-
-Usage:
-**!c**
-1. **!c [URL]**     Get chegg answer. Ex: *!c https://chegg.com/homewo...*
-**!cfg**
-1. **!cfg display_scale view**     View current bot display scale
-2. **!cfg display_scale [INTEGER]**     Change bot display scale
-3. **!cfg shutdown**     Shutdown bot server
-
-*Use this bot at your own risk*
+Revision: 06042021rev1
 ''' )
 intents = discord.Intents.default()
 intents.members = True
@@ -42,38 +32,104 @@ cgUname = os.getenv("cgUname")
 cgPass = os.getenv("cgPass")
 mUname = os.getenv("mUname")
 mPass = os.getenv("mPass")
-host = '101.255.132.115'
-port = '4145'
+# host = '101.255.132.115'
+# port = '4145'
 alert_duration = 1500 # milliseconds
 alert_freq = 1000 # Hz
 # Fixed window size
 height = 720
 width = 1280
 display_scale = 100
-if os.path.isfile('data/config'):
-    ds = open('data/config','r')
-    display_scale = ds.read()
-    display_scale = display_scale[display_scale.find('#1:')+3:]
-    ds.close()
-    print('\tINFO: Using display scale: '+display_scale+'%')
-    display_scale = float(display_scale)
-else:
-    print('\tINFO: Using default display scale (100%)')
+redir_timer = 0
+man = (
+'''
+Usage:
+1. *!c help*     Show chegg commands
+2. *!cfg help*     Show config commands
+'''
+)
+man_c = (
+'''
+Usage:
+
+1. *!c [URL]*     Get chegg answer. Ex: *!c https://chegg.com/homewo...*
+'''
+)
+man_cfg = (
+'''
+Usage:
+
+1. *!cfg display_scale view*     View current bot display scale
+2. *!cfg display_scale [NUMBER]*     Set bot display scale
+-----
+3. *!cfg redirect_timer view*     View current browser redirect timer
+4. *!cfg redirect_timer [NUMBER]*    Set browser redirect timer
+-----
+5. *!cfg shutdown*     Shutdown bot server
+'''
+)
+disclaimer = (
+'''
+*Use this bot at your own risk*
+'''
+)
 
 
 mega = Mega()
 m = mega.login(mUname,mPass)
-is_active = False
-while not is_active:
-    m_active = m.find('nonactive',exclude_deleted=True)
-    if not m_active:
-        print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
+
+# is_active = False
+# while not is_active:
+#     m_active = m.find('nonactive',exclude_deleted=True)
+#     if not m_active:
+#         print('\tERROR: Another bot is currently active. Please try again when no other bot is active!')
+#     else:
+#         m.rename(m_active, 'active')
+#         print('\tINFO: Bot status set to active.')
+#         print('\tINFO: Starting bot...')
+#         is_active = True
+# m_file = None
+
+
+if not os.path.isfile('data/config') or os.path.getsize('data/config'):
+    config = open('data/config','w')
+    lines = []
+    lines.append('displayScale#1:'+str(display_scale)+'##\n')
+    lines.append('redirectTimer#2:'+str(redir_timer)+'##\n')
+    config.writelines(lines)
+    lines = None
+    config.close()
+
+
+config = open('data/config','r')
+lines = config.readlines()
+
+try:
+    display_scale = lines[0]
+    display_scale = display_scale[display_scale.find('#1:')+3:display_scale.find('##')]
+    display_scale = float(display_scale)
+    if display_scale != 100:
+        print('\tINFO: Using display scale: '+str(display_scale)+'%')
     else:
-        m.rename(m_active, 'active')
-        print('\tINFO: Bot status changed to active.')
-        print('\tINFO: Starting bot...')
-        is_active = True
-m_file = None
+        print('\tINFO: Using default display scale (100.0%)')
+except Exception as e:
+    print('\tINFO: Using default display scale (100.0%)')
+    pass
+
+try:
+    redir_timer = lines[1]
+    redir_timer = redir_timer[redir_timer.find('#2:')+3:redir_timer.find('##')]
+    redir_timer = float(redir_timer)
+    if redir_timer != '0':
+        print('\tINFO: Using redirect timer: '+str(redir_timer)+' m')
+    else:
+        print('\tINFO: Using default redirect timer (Not set)')
+except Exception as e:
+    print('\tINFO: Using default redirect timer (Not set)')
+    pass
+
+lines = None
+config.close()
 
 
 def is_visible_xpath(timeout,locator):
@@ -131,7 +187,7 @@ options.add_argument("--user-data-dir=data/chrome-data")
 options.add_argument("window-size="+str(width)+','+str(height))
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
-options.add_argument("--proxy-server=socks4://" + host + ":" + port);
+# options.add_argument("--proxy-server=socks4://" + host + ":" + port);
 
 capa = DesiredCapabilities.CHROME
 capa["pageLoadStrategy"] = "none"
@@ -147,19 +203,18 @@ driver.set_page_load_timeout(30)
 
 def exit_handler():
     print('\tINFO: Please wait while exiting bot...')
-
-    is_active = True
-    while is_active:
-        m_active = m.find('active',exclude_deleted=True)
-        m.rename(m_active, 'nonactive')
-        m_active = m.find('active',exclude_deleted=True)
-        if m_active:
-            print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
-        else:
-            print('\tINFO: Successfully changed bot status to nonactive. Exiting bot...')
-            is_active = False
-
     driver.quit()
+
+    # is_active = True
+    # while is_active:
+    #     m_active = m.find('active',exclude_deleted=True)
+    #     m.rename(m_active, 'nonactive')
+    #     m_active = m.find('active',exclude_deleted=True)
+    #     if m_active:
+    #         print('\tWARNING: Error change bot status. Please wait, don\'t close the window!')
+    #     else:
+    #         print('\tINFO: Successfully set bot status to nonactive. Exiting bot...')
+    #         is_active = False
 
 atexit.register(exit_handler)
 
@@ -176,14 +231,12 @@ async def on_ready():
 
 @bot.command()
 async def cmd(ctx):
-    msg_reply = description
+    msg_reply = description + man + disclaimer
     await ctx.reply(msg_reply, mention_author=True)
     print('\tINFO: Showing help to user')
     print('\tINFO: Finished processing request from '+ctx.author.mention)
     print('\t------DONE------')
 
-
-run_timer = True
 
 @bot.command()
 async def cfg(ctx, *arg):
@@ -195,7 +248,7 @@ async def cfg(ctx, *arg):
         print('\t------DONE------')
 
     elif 'help' == arg[0]:
-        msg_reply = description
+        msg_reply = man_cfg + disclaimer
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: Showing !cfg help to user')
         print('\tINFO: Finished processing request from '+ctx.author.mention)
@@ -233,41 +286,79 @@ async def cfg(ctx, *arg):
                 print('\t------DONE------')
 
             display_scale = arg[1]
-            ds = open('data/config','w')
-            ds.write('displayScale#1:'+display_scale)
-            ds.close()
-
             display_scale = float(display_scale)
-            msg_reply = 'Display scale changed to: '+str(display_scale)+'%'
+
+            config = open('data/config','r+')
+            lines = config.readlines()
+            config.seek(0)
+            lines[0] = 'displayScale#1:'+str(display_scale)+'##\n'
+            config.writelines(lines)
+            lines = None
+            config.close()
+
+            msg_reply = 'Display scale set to: '+str(display_scale)+'%'
             await ctx.reply(msg_reply, mention_author=True)
             print('\tINFO: '+msg_reply)
 
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
 
+    elif 'redirect_timer' == arg[0]:
+        global redir_timer
+
+        try:
+            is_valid = arg[1]
+        except Exception as e:
+            msg_reply = 'Try using a command. See *!cfg help*'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
+
+        if 'view' == arg[1]:
+            msg_reply = 'Bot redirect timer is: '
+            if redir_timer:
+                msg_reply += str(redir_timer)+' m'
+            else:
+                msg_reply += 'Not set'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
+            print('\tINFO: Finished processing request from '+ctx.author.mention)
+            print('\t------DONE------')
+
+        else:
+            try:
+                is_float = float(arg[1])
+                is_float + 1
+            except Exception as e:
+                msg_reply = 'Wrong value. See *!cfg help*'
+                await ctx.reply(msg_reply, mention_author=True)
+                print('\tINFO: '+msg_reply)
+                print('\tINFO: Finished processing request from '+ctx.author.mention)
+                print('\t------DONE------')
+            
+            redir_timer = arg[1]
+            redir_timer = float(redir_timer)
+
+            config = open('data/config','r+')
+            lines = config.readlines()
+            config.seek(0)
+            lines[1] = 'redirectTimer#2:'+str(redir_timer)+'##\n'
+            config.writelines(lines)
+            lines = None
+            config.close()
+
+            msg_reply = 'Redirect timer set to '+str(redir_timer)+' m'
+            await ctx.reply(msg_reply, mention_author=True)
+            print('\tINFO: '+msg_reply)
+
     elif 'shutdown' == arg[0]:
         msg_reply = 'Shutting down the bot...'
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: '+msg_reply)
         sys.exit()
-
-    elif 'timer' == arg[0]:
-        global run_timer
-        if 'true' == arg[1]:
-            run_timer = True
-            msg_reply = 'Timer enabled'
-            await ctx.reply(msg_reply, mention_author=True)
-            print('\tINFO: '+msg_reply)
-        elif 'false' == arg[1]:
-            run_timer = False
-            msg_reply = 'Timer disabled'
-            await ctx.reply(msg_reply, mention_author=True)
-            print('\tINFO: '+msg_reply)
-        else:
-            msg_reply = 'Wrong parameter!'
-            await ctx.reply(msg_reply, mention_author=True)
-            print('\tINFO: '+msg_reply)
-
+            
     else:
         msg_reply = 'Invalid argument. See *!cfg help*'
         await ctx.reply(msg_reply, mention_author=True)
@@ -293,6 +384,7 @@ async def send_result(msg):
     print('\tINFO:'+msg_reply)
 
     url = 'https://www.' + msg
+    valid
     try:
         if url != driver.current_url:
             driver.get(url)
@@ -416,7 +508,7 @@ async def send_result(msg):
 
 
 async def url_task():
-    global sender, timer
+    global sender
     await bot.wait_until_ready()
 
     while True:
@@ -440,7 +532,7 @@ async def c(ctx, *arg):
         print('\t------DONE------')
 
     elif 'help' == arg[0]:
-        msg_reply = description
+        msg_reply = man_c + disclaimer
         await ctx.reply(msg_reply, mention_author=True)
         print('\tINFO: Showing !c help to user')
         print('\tINFO: Finished processing request from '+ctx.author.mention)
@@ -467,15 +559,20 @@ async def c(ctx, *arg):
 
 
 
-def redirect():
-    global timer, run_timer
+def redir():
+    global timer, redir_timer
     while True:
-        time.sleep(60)
-        if ((time.time() - timer > random.randint(150,250)) and ('google.com' not in driver.current_url)) and (run_timer == True):
-            driver.get('https://www.google.com')
-            timer = time.time()
+        if (redir_timer):
+            redir_timer = redir_timer * 60
+            time.sleep(redir_timer)
 
-background_thread = Thread(target=redirect)
+            if ((time.time() - timer > redir_timer) and ('google.com' not in driver.current_url)):
+                driver.get('https://www.google.com')
+                timer = time.time()
+        else:
+            time.sleep(180)
+
+background_thread = Thread(target=redir)
 background_thread.daemon = True
 background_thread.start()
 
