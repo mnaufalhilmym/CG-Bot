@@ -86,12 +86,14 @@ m = mega.login(mUname,mPass)
 #     else:
 #         m.rename(m_active, 'active')
 #         print('\tINFO: Bot status set to active.')
-#         print('\tINFO: Starting bot...')
 #         is_active = True
 # m_file = None
 
 
-if not os.path.isfile('data/config') or os.path.getsize('data/config'):
+print('\tINFO: Starting bot...')
+
+
+if not os.path.isfile('data/config') or not os.path.getsize('data/config'):
     config = open('data/config','w')
     lines = []
     lines.append('displayScale#1:'+str(display_scale)+'##\n')
@@ -260,11 +262,12 @@ async def cfg(ctx, *arg):
         try:
             is_valid = arg[1]
         except Exception as e:
-            msg_reply = 'Try using a command. See *!cfg help*'
+            msg_reply = 'Try using a value. See *!cfg help*'
             await ctx.reply(msg_reply, mention_author=True)
             print('\tINFO: '+msg_reply)
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
+            return
 
         if 'view' == arg[1]:
             msg_reply = 'Bot display scale is: '+str(display_scale)+'%'
@@ -284,6 +287,7 @@ async def cfg(ctx, *arg):
                 print('\tINFO: '+msg_reply)
                 print('\tINFO: Finished processing request from '+ctx.author.mention)
                 print('\t------DONE------')
+                return
 
             display_scale = arg[1]
             display_scale = float(display_scale)
@@ -309,11 +313,12 @@ async def cfg(ctx, *arg):
         try:
             is_valid = arg[1]
         except Exception as e:
-            msg_reply = 'Try using a command. See *!cfg help*'
+            msg_reply = 'Try using a value. See *!cfg help*'
             await ctx.reply(msg_reply, mention_author=True)
             print('\tINFO: '+msg_reply)
             print('\tINFO: Finished processing request from '+ctx.author.mention)
             print('\t------DONE------')
+            return
 
         if 'view' == arg[1]:
             msg_reply = 'Bot redirect timer is: '
@@ -337,6 +342,7 @@ async def cfg(ctx, *arg):
                 print('\tINFO: '+msg_reply)
                 print('\tINFO: Finished processing request from '+ctx.author.mention)
                 print('\t------DONE------')
+                return
             
             redir_timer = arg[1]
             redir_timer = float(redir_timer)
@@ -384,7 +390,7 @@ async def send_result(msg):
     print('\tINFO:'+msg_reply)
 
     url = 'https://www.' + msg
-    valid
+    is_pass = False
     try:
         if url != driver.current_url:
             driver.get(url)
@@ -395,116 +401,123 @@ async def send_result(msg):
                 await msg_send.edit(content=sender+'\n'+msg_reply)
                 print('\t\tCaptcha detected. Need to be resolved manually.')
 
-            while 'denied' in driver.title:
-                captcha_voice()
-                winsound.Beep(alert_freq,alert_duration)
-            
-                if 'denied' not in driver.title:
-                    msg_reply = 'Captcha resolved. Loading webpage...'
-                    await msg_send.edit(content=sender+'\n'+msg_reply)
-                    print('\t\t'+msg_reply)
-                    await asyncio.sleep(random.uniform(3,5))
+                while 'denied' in driver.title:
+                    captcha_voice()
+                    winsound.Beep(alert_freq,alert_duration)
+                
+                    if 'denied' not in driver.title:
+                        msg_reply = 'Captcha resolved. Loading webpage...'
+                        await msg_send.edit(content=sender+'\n'+msg_reply)
+                        print('\t\t'+msg_reply)
+                        await asyncio.sleep(random.uniform(3,5))
+                        is_pass = True
 
-            if driver.title == 'Page Not Found':
+            elif driver.title == 'Page Not Found':
                 msg_reply = 'Page not found. Check your URL!'
                 await msg_send.edit(content=sender+'\n'+msg_reply)
                 print('\t\tPage not found at URL:\n'+url)
+                return
+            
+            else:
+                is_pass = True
 
     except Exception as e:
         msg_reply = 'Get Exception while accessing URL. Try again or contact dev!'
         await msg_send.edit(content=sender+'\n'+msg_reply)
         print('\tINFO: Get Exception while accessing URL:\n'+url)
         print('\tEXCEPTION: '+str(e))
+        return
   
-    total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
-    top_height = 0
-    head = 60.0
-    plus = 0
-    plus2 = 0
-    if 'Solved:' in driver.title:
-        head = 113.0
-        plus = 14
-        plus2 = 12
+    if is_pass:
+        total_height = driver.execute_script("return document.body.parentNode.scrollHeight") + 1
+        top_height = 0
+        head = 60.0
+        plus = 0
+        plus2 = 0
+        if 'Solved:' in driver.title:
+            head = 113.0
+            plus = 14
+            plus2 = 12
 
-    n = 1
-    chegg_head = float(display_scale/100.0)*head
-    print('\tINFO: Using chegg_head: '+str(chegg_head))
-    minus = - (head)
-    print('\tINFO: Using minus: '+str(minus))
-    width = driver.execute_script("return window.innerWidth")
-    height = driver.execute_script("return window.innerHeight")
-    
-    msg_reply = 'Processing image...'
-    await msg_send.edit(content=sender+'\n'+msg_reply)
-    print('\tINFO: '+msg_reply)
+        n = 1
+        chegg_head = float(display_scale/100.0)*head
+        print('\tINFO: Using chegg_head: '+str(chegg_head))
+        minus = - (head)
+        print('\tINFO: Using minus: '+str(minus))
+        width = driver.execute_script("return window.innerWidth")
+        height = driver.execute_script("return window.innerHeight")
+        
+        msg_reply = 'Processing image...'
+        await msg_send.edit(content=sender+'\n'+msg_reply)
+        print('\tINFO: '+msg_reply)
 
-    driver.execute_script("window.scrollTo(0, 0)")
-    while top_height < total_height:
-        filepath = 'data/cache/screenshot'+str(n)+'.png'
-        driver.save_screenshot(filepath)
+        driver.execute_script("window.scrollTo(0, 0)")
+        while top_height < total_height:
+            filepath = 'data/cache/screenshot'+str(n)+'.png'
+            driver.save_screenshot(filepath)
 
-        if (top_height + 2 * height) < total_height + minus:
-            top_height = top_height + height + minus
-            if n == 1:
-                top_height = top_height + plus
-        else:
-            break
-            
-        n = n + 1
-        await asyncio.sleep(random.random())
-        driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
-
-
-    images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n+1)]
-
-    scrollbar_width = 17
-    x = 1
-    for im in images:
-        if x == n:
-            chegg_head = chegg_head - float(display_scale/100.0)*plus2
-        im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
-        im.save('data/cache/ans'+str(x)+'.png', quality=50)
-        x = x + 1
-
-    images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n+1)]
-    widths, heights = zip(*(i.size for i in images))
-    max_width = max(widths)
-    total_height = sum(heights)
-
-    new_im = Image.new('RGB', (max_width, total_height))
-
-    y_offset = 0
-    n = 0
-    for im in images:
-        new_im.paste(im, (0,y_offset))
-        y_offset += im.size[1]
-
-    new_im.save('data/cache/ans.png', quality=50)
-
-    images = None
-
-    msg_reply = 'Sending image...'
-    await msg_send.edit(content=sender+'\n'+msg_reply)
-    print('\tINFO: '+msg_reply)
-
-    msg_reply = 'Done! :)'
-    await stx.reply(sender+"\nHere is the result ", file=discord.File('data/cache/ans.png'))
-    await msg_send.edit(content=sender+'\n'+msg_reply)
-    print('\tINFO: '+msg_reply)
+            if (top_height + 2 * height) < total_height + minus:
+                top_height = top_height + height + minus
+                if n == 1:
+                    top_height = top_height + plus
+            else:
+                break
+                
+            n = n + 1
+            await asyncio.sleep(random.random())
+            driver.execute_script('window.scrollTo(0,'+str(top_height)+')')
 
 
-    driver.execute_script('window.scrollTo(0,'+str(random.randint(0,total_height-height))+')')
+        images = [Image.open('data/cache/screenshot'+str(x)+'.png') for x in range(1,n+1)]
 
-    next_url.set()
+        scrollbar_width = 17
+        x = 1
+        for im in images:
+            if x == n:
+                chegg_head = chegg_head - float(display_scale/100.0)*plus2
+            im = im.crop((0,chegg_head,im.size[0]-scrollbar_width,im.size[1]))
+            im.save('data/cache/ans'+str(x)+'.png', quality=50)
+            x = x + 1
 
-    timer = time.time()
+        images = [Image.open('data/cache/ans'+str(x)+'.png') for x in range(1,n+1)]
+        widths, heights = zip(*(i.size for i in images))
+        max_width = max(widths)
+        total_height = sum(heights)
 
-    print('\tINFO: Finished processing request from '+sender+' at '+str(timer))
-    print('\t------DONE------')
+        new_im = Image.new('RGB', (max_width, total_height))
+
+        y_offset = 0
+        n = 0
+        for im in images:
+            new_im.paste(im, (0,y_offset))
+            y_offset += im.size[1]
+
+        new_im.save('data/cache/ans.png', quality=50)
+
+        images = None
+
+        msg_reply = 'Sending image...'
+        await msg_send.edit(content=sender+'\n'+msg_reply)
+        print('\tINFO: '+msg_reply)
+
+        msg_reply = 'Done! :)'
+        await stx.reply(sender+"\nHere is the result ", file=discord.File('data/cache/ans.png'))
+        await msg_send.edit(content=sender+'\n'+msg_reply)
+        print('\tINFO: '+msg_reply)
 
 
-    await asyncio.sleep(15)
-    await msg_send.delete()
+        driver.execute_script('window.scrollTo(0,'+str(random.randint(0,total_height-height))+')')
+
+        next_url.set()
+
+        timer = time.time()
+
+        print('\tINFO: Finished processing request from '+sender+' at '+str(timer))
+        print('\t------DONE------')
+
+
+        await asyncio.sleep(15)
+        await msg_send.delete()
 
 
 async def url_task():
@@ -563,10 +576,10 @@ def redir():
     global timer, redir_timer
     while True:
         if (redir_timer):
-            redir_timer = redir_timer * 60
-            time.sleep(redir_timer)
+            redirect_timer = redir_timer * 60
+            time.sleep(redirect_timer)
 
-            if ((time.time() - timer > redir_timer) and ('google.com' not in driver.current_url)):
+            if ((time.time() - timer > redirect_timer) and ('google.com' not in driver.current_url)):
                 driver.get('https://www.google.com')
                 timer = time.time()
         else:
